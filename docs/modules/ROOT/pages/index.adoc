@@ -1,0 +1,55 @@
+= Giriş
+
+Mirket, API yönetimi ürünüdür.
+Web uygulaması programlama arayüzleri (API'ler) oluşturma, yayınlama, kullanım ilkelerini uygulama, erişimi kontrol etme, abone topluluğunu besleme, kullanım istatistiklerini toplama ve analiz etme ve performans hakkında raporlama sürecidir . API Yönetimi bileşenleri, geliştirici ve api sağlayıcı topluluğunu desteklemek için mekanizmalar ve araçlar sağlar.
+
+Modern yazılım mimarilerinden mikroservis mimarisi için API Gateway, istemcilerle backend servisleri / mikro servisler arasındaki API yönetimini sağlar. API Gateway, API isteklerini alarak çeşitli kurallara göre uygun servislere yönlendiren bir ters vekil sunucusu (reverse proxy) olarak çalışır.
+
+Mirket ürünü aşağıdaki bileşenlerden (2.2) oluşmaktadır. Bileşen özellikleri versiyonlara göre güncellenip, değişebilir. Değişimler majör olmadıkça geriye dönük desteklenmektedir. Her versiyon güncellemesi öncesi, sürüm notu paylaşılır.
+
+Majör değişikliklerde geriye dönük destek sağlanmamaktadır.
+
+Versiyon değişiklik yöntemi (semantik versiyonlama yöntemi uygulanmaktadır)
+
+* **Major** : 1.0.0 -> 2.0.0
+* **Minor** : 1.0.0 -> 1.1.0
+* **Patch** : 1.0.0 -> 1.0.1
+
+== Bileşenler
+
+**Ağ Geçidi (Gateway) :** API ön ucu görevi gören, API isteklerini alan, kısıtlama ve güvenlik ilkelerini uygulayan, istekleri arka uç hizmetine iletir ve ardından yanıtı istek sahibine geri iletir. Ağ geçidi istekleri ve yanıtları anında düzenlemek ve değiştirmek için bir dönüştürme motoru içerir(versiyon 4.x.x ile birlikte). Ağ geçidi, analitik verileri periyodik olarak toplar ve önbelleğe alma sağlama gibi işlevler de sağlayabilir. Ağ geçidi, kimlik doğrulama, yetkilendirme, güvenlik, denetim ve mevzuat uyumluluğunu desteklemek için işlevsellik sağlar.
+
+**Katalog :** API sağlayıcılarının, API'leri tanımlamak, API belgeleri oluşturmak, API'ler için erişim ve kullanım politikaları aracılığıyla API kullanımını yönetmek, güvenlik testi dahil olmak üzere API'nin yürütülmesini test etmek ve hata ayıklamak için kullandığı araçlar topluluğu ve test paketleri oluşturma, API'leri üretim, hazırlama ve kalite güvence ortamlarına dağıtma ve genel API yaşam döngüsünü koordine etme işlemleri yapılabilir.
+
+**UI : Operasyon / Geliştirici /API Kaynakları : ** Katalog işlemlerinin arayüzüdür. API kullanıcıları için belgeler, öğreticiler, örnek kod, etkileşimli bir API konsolu, İstemci Kimliği gibi kullanıcı anahtarlarını alınması işlemleri yapılır.
+
+**Raporlama ve analitik :** API kullanımını ve yükünü (genel isabetler, tamamlanan işlemler, döndürülen veri nesnesi sayısı, işlem süresi ve tüketilen diğer dahili kaynaklar, aktarılan veri hacmi) izleme işlevinin yakın gerçek zamanlı yada periyodik olarak raporlanmasını sağlar.  Raporlama ve analitik işlevselliği tarafından toplanan bilgiler, API sağlayıcısı tarafından bir kuruluşun genel sürekli iyileştirme süreci içinde API teklifini optimize etmek ve API'ler için yazılım Hizmet Düzeyi Sözleşmelerini tanımlamak için kullanılabilir.
+
+**Hazelcast :** Dağıtık hesaplama, ön bellek/local bellek, kilitleme, kuyruklama işllemleri için kullanılır.
+
+**Veritabanı :** Katalog, konfigürasyon ve metik bilgilerini deplomaktan sorumludur.
+
+**(Opsiyonel) Ödeme :** Ticari API'lere erişim için ücretlendirmeyi destekleyen işlevselliktir. Bu işlevsellik, kullanıma, yüke ve işlevselliğe dayalı olarak fiyatlandırma kurallarının ayarlanması, ilgili ödeme kanalına göre entegre edilmesi, CDR üretilmesi desteği içerebilir. Kuruma göre ödeme yöntemleri/akışları özel olarak geliştirilir.
+
+== Yazılım Mimarisi
+
+.Mirket Janissary Mimari
+image::mirket-architecture.png[Mirket Yazılım Mimarisi]
+
+== Özellikler
+
+* API Kullanıcısı tanıma (authentication -> ip, header, basic auth, no-auth for firewall based)
+* API Kullanıcısı - API yetkilendirme (authorization)
+* IP bazlı kısıtlama, her API kullanıcısı için ayrı IP adresi tanımlama
+* REST + SOAP API desteği
+* API ve API kullanıcısı bazlı istatistikleri tutma ve grafik olarak gösterme
+* Anlık istatistik hesaplama ve near real-time gösterim
+* Çoklu Veritabanı desteği (Mongodb, Oracle, MySQL DB)
+* Basic authentication dahil olmak üzere farklı header/url authentication yapılarını destekler
+* Custom request header tanımlama ve header’ların farklı veri kaynaklarından beslenebilmesi
+* API kullanıcısı bazlı API’ye gelebilecek istekleri kısıtlama (throttling)
+* Farklı sunuculara round robin istekleri dağıtabilme (loadbalancing)
+* Merkezi konfigürasyon (openshift/kubernetes configMap veya config-server uygulaması)
+* Mikroservis mimarisi
+* Ön yüzde farklı rollerde kullanıcılar portali kullanabilir
+* Altyapı desteği (Standalone jar, Docker, Kubernetes, Openshift)

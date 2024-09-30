@@ -1,0 +1,941 @@
+= Basit Bir API Tanımı
+
+== Basit Yönlendirme
+Basit yönlendirme, isteğin tek bir sunucuya gitmesidir. Atılan istek belirli bir backend URI’ye yönlendirilir.
+
+=== API Oluşturma ve Test
+
+Basit Yönlendirme ile JSONPlaceholder'dan veri çeken bir API tanımı yapmak istersek şu adımları izlememiz yeterli.
+
+Sol menü yardımı ile Katalog -> API sayfasına geçilir.
+
+.API Listeleme
+image::api-list.png[API Listeleme]
+
+Ekranın sağ alt tarafında bulunan `Yeni API Oluştur` butonuna tıklanarak API Oluşturma sayfası açılır.
+
+.Yeni API Oluştur
+image::create-new-api.png[Yeni API Oluştur]
+
+
+Tanım tabı ilgili değerler ile doldurulur.
+
+Örneğin,
+
+====
+*Ad:* Get Posts - JSONPlaceholder
+
+*Açıklama:* Get Posts - JSONPlaceholder
+
+*Durum:* Aktif
+
+*Metod:* GET
+
+*Tip:* REST
+
+*Domain:* http://localhost:12102
+
+*Endpoint:* /basic/posts
+
+====
+
+.Tanım
+image::basic-api-definition.png[Tanım]
+
+Tanım tabında ilgili tanımlar yapıldıktan sonra Yönlendirme tabına geçilir.
+Yönlendirme tabında `Basit Yönlendirme` seçilip ilgili değerler ile doldurulur.
+
+Örneğin,
+
+
+====
+*Backend Http Metod:* GET
+
+*BackendUri:* https://jsonplaceholder.typicode.com/posts
+====
+
+
+.Yönlendirme
+image::basic-api-routing.png[Yönlendirme]
+
+Yönlendirme tabında ilgili tanımları yaptıktan sonra ekranın sol alt tarafında bulunan `Kaydet` butonuna tıklanarak api kaydedilir.
+Başarılı kayıttan sonra API Listeleme sayfasına yönlendirilmiş olacağız.
+Burada tekrardan kaydettiğimiz apimizi güncelle butonuna basarak düzenleme sayfasında açacağız.
+`API Düzenle` sayfasında Test tabına gelerek apimizi test edebiliriz.
+
+
+.Test
+image::basic-api-test.png[Test]
+
+
+`Çalıştır` butonuna tıklayarak apimizi tetikleyebiliriz. Api tetiklendikten sonra cevabını ekranda bulunan `Cevap` bölümünde görebiliriz.
+
+[source]
+----
+[
+    {
+        "userId": 1,
+        "id": 1,
+        "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
+        "body": "quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto"
+    },
+    {
+        "userId": 1,
+        "id": 2,
+        "title": "qui est esse",
+        "body": "est rerum tempore vitae\nsequi sint nihil reprehenderit dolor beatae ea dolores neque\nfugiat blanditiis voluptate porro vel nihil molestiae ut reiciendis\nqui aperiam non debitis possimus qui neque nisi nulla"
+    },
+    {
+        "userId": 1,
+        "id": 3,
+        "title": "ea molestias quasi exercitationem repellat qui ipsa sit aut",
+        "body": "et iusto sed quo iure\nvoluptatem occaecati omnis eligendi aut ad\nvoluptatem doloribus vel accusantium quis pariatur\nmolestiae porro eius odio et labore et velit aut"
+    },
+    {
+        "userId": 1,
+        "id": 4,
+        "title": "eum et est occaecati",
+        "body": "ullam et saepe reiciendis voluptatem adipisci\nsit amet autem assumenda provident rerum culpa\nquis hic commodi nesciunt rem tenetur doloremque ipsam iure\nquis sunt voluptatem rerum illo velit"
+    },
+    {
+        "userId": 1,
+        "id": 5,
+        "title": "nesciunt quas odio",
+        "body": "repudiandae veniam quaerat sunt sed\nalias aut fugiat sit autem sed est\nvoluptatem omnis possimus esse voluptatibus quis\nest aut tenetur dolor neque"
+    },
+                                            .
+                                            .
+                                            .
+]
+----
+
+== Yük Dağıtımı ile Yönlendirme
+
+=== Round Robin Yük Dağıtımı
+
+Tüm backend’lerin aynı kapasitede ve özelliklerde olduğu durumda, isteklerin sırayla farklı backend’lere gönderilmesi için kullanılır.
+
+==== API Oluşturma ve Test
+
+Uygulamaya giriş yapılır.
+Sol menüden *Katalog* altında bulunan *API*'ye tıklanır.
+*Yeni API Oluştur* butonuna tıklanır.
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Round Robin Load Balancing
+
+*Açıklama:* Round Robin Load Balancing API
+
+*Durum:* Aktif
+
+*Tip:* REST
+
+*EndPoint:* `/round-robin`
+
+*Metot:* GET
+
+*Asenkron mu?:* Hayır
+====
+
+.API Oluşturma
+image::round-robin_api_create.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *Yük Dağıtımı ile Yönlendirme* seçilir.
+Yük dağıtım stratejisi olarak *Round Robin* seçilir.
+
+Backend'de `rest/gets/v10/first` API'si olduğu varsayılır. Aynı backend farklı portlarda (12107, 12109, 12110) ya da farklı sunucularda aynı portta birden fazla instance olarak ayağa kaldırılır.
+
+*Backend URL ekleme* butonuna tıklanır.
+Aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/rest/gets/v10/first` (İsteklerin gönderileceği URL)
+
+*Backend URL:* `http://localhost:12109/rest/gets/v10/first`
+
+*Backend URL:* `http://localhost:12110/rest/gets/v10/first`
+====
+
+.Backend URL Ekleme
+image::round_robin_add_backend_url.png[Backend URL Ekleme]
+
+.Yönlendirme
+image::round-robin_api_create_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *GET* seçilir.
+*Kaydet* butonuna tıklanır.
+
+* Test
++
+--
+Uygulamaya giriş yapılır.
+Sol menüden *Katalog* altında bulunan *API*'ye tıklanır.
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+Çalıştır'a tıklanır.
+
+Çalıştır butonuna her tıklandığında isteklerin sırayla farklı backend’lere gönderildiği görülür.
+--
+
+
+=== Ağırlıklı Yük Dağıtımı
+
+Yükün belirli oranlarda backend URL’lere dağıtılmasını sağlar. Örneğin gelen trafiğin %25’inin bir backend’e, %75’inin başka bir backend’e iletilmesi sağlanabilir.
+
+==== API Oluşturma ve Test
+
+Uygulamaya giriş yapılır.
+Sol menüden *Katalog* altında bulunan *API*'ye tıklanır.
+*Yeni API Oluştur* butonuna tıklanır.
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Weighted Load Balancing
+
+*Açıklama:* Weighted Load Balancing API
+
+*Durum:* Aktif
+
+*Tip:* REST
+
+*EndPoint:* `/weighted`
+
+*Metot:* GET
+
+*Asenkron mu?:* Hayır
+====
+
+.API Oluşturma
+image::weighted_api_create.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *Yük Dağıtımı ile Yönlendirme* seçilir.
+Yük dağıtım stratejisi olarak *Weighted* seçilir.
+
+Backend'de `rest/gets/v10/first` API'si olduğu varsayılır. Aynı backend farklı portlarda (12107, 12109) ya da farklı sunucularda aynı portta birden fazla instance olarak ayağa kaldırılır.
+
+*Backend URL ekleme* butonuna tıklanır.
+Aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/rest/gets/v10/first` (İsteklerin gönderileceği URL)
+*Ağırlık:* 1 (Backend'e gidecek isteklerin oranı)
+
+*Backend URL:* `http://localhost:12109/rest/gets/v10/first`
+*Ağırlık:* 3
+====
+
+.Backend URL Ekleme
+image::weighted_add_backend_url.png[Backend URL Ekleme]
+
+.Yönlendirme
+image::weighted_api_create_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *GET* seçilir.
+*Kaydet* butonuna tıklanır.
+
+* Test
++
+--
+Uygulamaya giriş yapılır.
+Sol menüden *Katalog* altında bulunan *API*'ye tıklanır.
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+Çalıştır'a tıklanır.
+
+Çalıştır butonuna tıklandığında isteklerin backend'lere 1 - 3 oranında dağıldığı görülür. Mesela 100 istek atıldığını varsayalım. 25 istek bir backend'e gönderilirken 75 istek diğer backend'e gönderilir.
+--
+
+=== A/B Test
+
+Belirli kriterlere göre seçilmiş belirli bir grubu her zaman aynı backend URL’ine göndermek için kullanılır. Örneğin bir mikroservisin yeni devreye alınmış bir versiyonu ile eski versiyonu aynı anda ayakta olduğu durumda, sadece belli müşterileri seçerek bu müşterilerin API isteklerini yeni versiyona, diğer müşterilerin isteklerini eski versiyona iletmek için kullanılabilir.
+
+==== API Oluşturma ve Test
+
+Uygulamaya giriş yapılır.
+Sol menüden *Katalog* altında bulunan *API*'ye tıklanır.
+*Yeni API Oluştur* butonuna tıklanır.
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* A/B Testing
+
+*Açıklama:* A/B Testing
+
+*Durum:* Aktif
+
+*Tip:* REST
+
+*EndPoint:* `/ab`
+
+*Metot:* GET
+
+*Asenkron mu?:* Hayır
+====
+
+.API Oluşturma
+image::ab_test_api_create.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *Yük Dağıtımı ile Yönlendirme* seçilir.
+Yük dağıtım stratejisi olarak *A/B Testing* seçilir.
+Backend'de `rest/gets/v10/first` API'si olduğu varsayılır. Aynı backend farklı portlarda (12107, 12109) ya da farklı sunucularda aynı portta birden fazla instance olarak ayağa kaldırılır.
+*Backend URL ekleme* butonuna tıklanır.
+
+* Değer kaynağının *İstek Başlığı* seçildiği durum:
++
+--
+Aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/rest/gets/v10/first`
+
+*Değer Kaynağı:* İstek Başlığı
+
+*İstek Başlığı İsmi:* `X-Forwarded-For`
+
+*Beklenen Değer:* `88.11.23.35`
+
+*Değer Operatörü:* Eşittir
+
+*Default Backend:* Hayır
+
+
+*Backend URL:* `http://localhost:12109/rest/gets/v10/first`
+
+*Değer Kaynağı:* İstek Başlığı
+
+*İstek Başlığı İsmi:* `X-Forwarded-For`
+
+*Beklenen Değer:* `88.11.23.35`
+
+*Değer Operatörü:* Eşit değildir
+
+*Default Backend:* Evet
+====
+
+.Backend URL Ekleme
+image::ab_request_header_backend_url.png[Backend URL Ekleme]
+
+.Yönlendirme
+image::ab_request_header_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *GET* seçilir.
+*Kaydet* butonuna tıklanır.
+
+** Test
+
+Uygulamaya giriş yapılır.
+Sol menüden *Katalog* altında bulunan *API*'ye tıklanır.
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+*İstek -> Başlıklar -> API İsteği Başlıkları* bölümünde *X-Forwarded-For* anahtarının karşısına *88.11.23.35* değeri girilir. Çalıştır'a tıklanır.
+Atılan isteğin 12107 portlu backend'e gönderildiği görülür.
+*X-Forwarded-For* anahtarının karşısına farklı bir değer girilir ve çalıştıra tıklanır.
+Atılan isteğin 12109 portlu backend'e gönderildiği görülür.
+--
+
+* Değer kaynağının *Sorgu Dizesi Parametresi* seçildiği durum:
++
+--
+Aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/rest/gets/v10/first`
+
+*Değer Kaynağı:* Sorgu Dizesi Parametresi
+
+*Sorgu Dizesi Parametre Adı:* `priority`
+
+*Beklenen Değer:* `1`
+
+*Değer Operatörü:* Eşittir
+
+*Default Backend:* Hayır
+
+
+*Backend URL:* `http://localhost:12109/rest/gets/v10/first`
+
+*Değer Kaynağı:* Sorgu Dizesi Parametresi
+
+*Sorgu Dizesi Parametre Adı:* `priority`
+
+*Beklenen Değer:* `1`
+
+*Değer Operatörü:* Eşit değildir
+
+*Default Backend:* Evet
+====
+
+.Backend URL Ekleme
+image::ab_request_query_param_backend_url.png[Backend URL Ekleme]
+
+.Yönlendirme
+image::ab_request_query_param_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *GET* seçilir.
+*Kaydet* butonuna tıklanır.
+
+** Test
+
+Uygulamaya giriş yapılır.
+Sol menüden *Katalog* altında bulunan *API*'ye tıklanır.
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+*İstek -> Parametreler -> API Sorgu Parametreleri* bölümünde *priority* anahtarının karşısına *1* değeri girilir. Çalıştır'a tıklanır.
+Atılan isteğin 12107 portlu backend'e gönderildiği görülür.
+*priority* anahtarının karşısına farklı bir değer girilir ve çalıştıra tıklanır.
+Atılan isteğin 12109 portlu backend'e gönderildiği görülür.
+--
+
+* Değer kaynağının *İstek Gövdesi JsonPath* seçildiği durum:
++
+--
+Aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/rest/gets/v10/first`
+
+*Değer Kaynağı:* İstek Gövdesi JsonPath
+
+*JSON Path:* `$.msisdn`
+
+*Beklenen Değer:* `905554443322`
+
+*Değer Operatörü:* Eşittir
+
+*Default Backend:* Hayır
+
+
+*Backend URL:* `http://localhost:12109/rest/gets/v10/first`
+
+*Değer Kaynağı:* İstek Gövdesi JsonPath
+
+*JSON Path:* `$.msisdn`
+
+*Beklenen Değer:* `905554443322`
+
+*Değer Operatörü:* Eşit değildir
+
+*Default Backend:* Evet
+====
+
+.Backend URL Ekleme
+image::ab_json_path_backend_url.png[Backend URL Ekleme]
+
+.Yönlendirme
+image::ab_json_path_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *GET* seçilir.
+*Kaydet* butonuna tıklanır.
+
+** Test
+
+Postman veya benzeri bir REST client üzerinden aşağıdaki gibi bir istek oluşturulur.
+Gövde kısmına aşağıdaki json değeri girilir ve `http://localhost:12102/ab` URL'ine istek atılır.
+
+[source,json]
+{
+    "offerKey": "OFR1234",
+    "msisdn": "905554443322"
+}
+
+Atılan isteğin 12107 portlu backend'e gönderildiği görülür.
+*msisdn* parametresinin karşısına farklı bir değer girilir ve istek atılır.
+Atılan isteğin 12109 portlu backend'e gönderildiği görülür.
+
+.A/B Testing
+image::ab_test_json_path_with_postman.png[A/B Testing]
+--
+
+* Değer kaynağının *İstek Gövdesi XPath* seçildiği durum:
++
+--
+** API Oluşturma
+
+Uygulamaya giriş yapılır.
+Sol menüden *Katalog* altında bulunan *API*'ye tıklanır.
+*Yeni API Oluştur* butonuna tıklanır.
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* A/B Testing
+
+*Açıklama:* A/B Testing
+
+*Durum:* Aktif
+
+*Tip:* SOAP
+
+*EndPoint:* `/ab`
+
+*Metot:* getGenres
+
+*Asenkron mu?:* Hayır
+====
+
+.API Oluşturma
+image::ab_xpath_api_create.png[API Oluşturma]
+
+Aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/soap/posts/v10/first`
+
+*Değer Kaynağı:* İstek Gövdesi XPath
+
+*XPath:* `Envelope/Body/getGenres/username[text()]`
+
+*Beklenen Değer:* `ttm_ios`
+
+*Değer Operatörü:* Eşittir
+
+*Default Backend:* Hayır
+
+
+*Backend URL:* `http://localhost:12109/soap/posts/v10/first`
+
+*Değer Kaynağı:* İstek Gövdesi XPath
+
+*XPath:* `Envelope/Body/getGenres/username[text()]`
+
+*Beklenen Değer:* `ttm_ios`
+
+*Değer Operatörü:* Eşit değildir
+
+*Default Backend:* Evet
+====
+
+.Backend URL Ekleme
+image::ab_xpath_backend_url.png[Backend URL Ekleme]
+
+.Yönlendirme
+image::ab_xpath_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *POST* seçilir.
+*Kaydet* butonuna tıklanır.
+
+** Test
+
+SoapUI veya benzeri bir SOAP Client üzerinden `http://localhost:12102/ab` URL'ine aşağıdaki istek atılır:
+[source,xml]
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://ttmuzikfuncs.proarge.com/wsdl/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <wsdl:getGenres>
+         <username>ttm_ios</username>
+         <password>l1st4n_7he_mu5ic!</password>
+         <!--Optional:-->
+         <cdata>1</cdata>
+      </wsdl:getGenres>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+SOAP isteğinde *username* alanı *ttm_ios* olan isteklerin 12107 portlu backend'e, *username* alanı *ttm_ios*'tan farklı olan isteklerin 12109 portlu backend'e gönderildiği görülür.
+--
+
+* Değer kaynağının *İş Nesnesi Alanı* seçildiği durum:
++
+--
+*Katalog -> API Kullanıcıları* ekranında tanımlı, `ID` değeri `451fa26738a04a39b95e79fcaf6c6fa2`, `apiKey` değeri `f5a66a64-6e7c-4041-84e7-4d62e96fb7dc` olan bir kullanıcı olduğu varsayılıyor.
+
+.Kimlik Doğrulama Yöntemine Sahip API Kullanıcısı
+image::api_consumer_with_api_key.png[Kimlik Doğrulama Yöntemine Sahip API Kullanıcısı]
+
+Aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/rest/gets/v10/first`
+
+*Değer Kaynağı:* İş Nesnesi Alanı
+
+*İş Nesnesi Özelliği:* `API Kullanıcı Id`
+
+*Beklenen Değer:* `451fa26738a04a39b95e79fcaf6c6fa2`(api kullanıcı id)
+
+*Değer Operatörü:* Eşittir
+
+*Default Backend:* Hayır
+
+
+*Backend URL:* `http://localhost:12109/rest/gets/v10/first`
+
+*Değer Kaynağı:* İş Nesnesi Alanı
+
+*İş Nesnesi Özelliği:* `API Kullanıcı Id`
+
+*Beklenen Değer:* `451fa26738a04a39b95e79fcaf6c6fa2`
+
+*Değer Operatörü:* Eşit değildir
+
+*Default Backend:* Evet
+====
+
+.Backend URL Ekleme
+image::ab_business_obj_property_backend_url.png[Backend URL Ekleme]
+
+.Yönlendirme
+image::ab_business_obj_property_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *GET* seçilir.
+*Kaydet* butonuna tıklanır.
+
+** Test
+
+Postman veya benzeri bir REST client üzerinden `http://localhost:12102/ab?apiKey=f5a66a64-6e7c-4041-84e7-4d62e96fb7dc` URL'ine istek atılır.
+Atılan isteğin 12107 portlu backend'e gönderildiği görülür.
+*apiKey* parametresinin karşısına farklı bir değer girilir ve istek atılır.
+Atılan isteğin 12109 portlu backend'e gönderildiği görülür.
+--
+
+* Değer kaynağının *İş Nesnesi Özelliği* seçildiği durum:
++
+--
+Sol menüden *Katalog -> Katalog Ayarları* altında bulunan *Özellik Tanımları*'na tıklanır.
+*Özellik Tanımı Oluştur* butonuna tıklanır.
+Aşağıdaki bilgiler doldurulur:
+====
+*Ad:* aggregatorId
+
+*Nesne Türü:* API Kullanıcısı
+
+*Veri Giriş Türü:* Tek Satırlı Metin Alanı
+
+*Veri Tipi:* Metin
+
+*Varsayılan Değer:* 11
+
+*Zorunlu Alan mı?:* Hayır
+
+*Maksimum Uzunluk:* Boş
+
+*Düzenli İfade:* Boş
+
+*Görünüm Sırası:* 1
+====
+
+.Özellik Tanımı Oluşturma
+image::attribute_definition_create.png[Özellik Tanımı Oluşturma]
+
+*Kaydet* butonuna tıklanır.
+
+Sol menüden *Katalog* altında bulunan *API Kullanıcıları*'na tıklanır.
+apiKey değeri `f5a66a64-6e7c-4041-84e7-4d62e96fb7dc` olan API Kullanıcısının *güncelle* butonuna tıklanır.
+Özellikler sekmesinde bulunan `aggregatorId` alanına `8` değeri girilir.
+*Güncelle* butonuna tıklanır.
+
+API oluştururken aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/rest/gets/v10/first`
+
+*Değer Kaynağı:* İş Nesnesi Özelliği
+
+*Nesne Türü:* `API Kullanıcısı`
+
+*Özellik:* `aggregatorId`
+
+*Beklenen Değer:* `8`
+
+*Değer Operatörü:* Eşittir
+
+*Default Backend:* Hayır
+
+
+*Backend URL:* `http://localhost:12109/rest/gets/v10/first`
+
+*Değer Kaynağı:* İş Nesnesi Özelliği
+
+*Nesne Türü:* `API Kullanıcısı`
+
+*Özellik:* `aggregatorId`
+
+*Beklenen Değer:* `8`
+
+*Değer Operatörü:* Eşit değildir
+
+*Default Backend:* Evet
+====
+
+.Backend URL Ekleme
+image::ab_business_obj_attribute_backend_url.png[Backend URL Ekleme]
+
+.Yönlendirme
+image::ab_business_obj_attribute_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *GET* seçilir.
+*Kaydet* butonuna tıklanır.
+
+** Test
+
+Postman veya benzeri bir REST client üzerinden `http://localhost:12102/ab?apiKey=f5a66a64-6e7c-4041-84e7-4d62e96fb7dc` URL'ine istek atılır.
+Atılan isteğin 12107 portlu backend'e gönderildiği görülür.
+*apiKey* parametresinin karşısına farklı bir değer girilir ve istek atılır.
+Atılan isteğin 12109 portlu backend'e gönderildiği görülür.
+--
+
+=== Idempotent Yük Dağıtımı
+
+İsteğin içinden okunabilecek bir değere bağlı olarak, aynı değerdeki isteklerin aynı backend’lere gitmesini sağlar. Bir veya birden fazla Backend URL eklendikten sonra Değer Kaynağı seçimi yapılmalı ve kaynağın ilgili değeri girilmelidir.
+
+==== API Oluşturma ve Test
+
+Uygulamaya giriş yapılır.
+Sol menüden *Katalog* altında bulunan *API*'ye tıklanır.
+*Yeni API Oluştur* butonuna tıklanır.
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Idempotent Load Balancing
+
+*Açıklama:* Idempotent Load Balancing
+
+*Durum:* Aktif
+
+*Tip:* REST
+
+*EndPoint:* `/idempotent`
+
+*Metot:* GET
+
+*Asenkron mu?:* Hayır
+====
+
+.API Oluşturma
+image::idempotent_api_create.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *Yük Dağıtımı ile Yönlendirme* seçilir.
+Yük dağıtım stratejisi olarak *Idempotent* seçilir.
+Backend'de `rest/gets/v10/first` API'si olduğu varsayılır. Aynı backend farklı portlarda (12107, 12109) ya da farklı sunucularda aynı portta birden fazla instance olarak ayağa kaldırılır.
+*Backend URL ekleme* butonuna tıklanır.
+
+.Backend URL Ekleme
+image::idempotent_add_backend_url.png[Backend URL Ekleme]
+
+* Değer kaynağının *İstek Başlığı* seçildiği durum:
++
+--
+Aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/rest/gets/v10/first`
+
+*Backend URL:* `http://localhost:12109/rest/gets/v10/first`
+
+*Değer Kaynağı:* İstek Başlığı
+*İstek Başlığı İsmi:* `X-Forwarded-For`
+====
+
+.Yönlendirme
+image::idempotent_request_header_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *GET* seçilir.
+*Kaydet* butonuna tıklanır.
+
+** Test
+
+Uygulamaya giriş yapılır.
+Sol menüden *Katalog* altında bulunan *API*'ye tıklanır.
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+*İstek -> Başlıklar -> API İsteği Başlıkları* bölümünde *X-Forwarded-For* anahtarının karşısına *88.11.23.35* değeri girilir. Çalıştır'a tıklanır.
+Atılan istek backend'lerden herhangi birine yönlenebilir. *İstek başlığı* değeri değişmediği sürece isteklerin her zaman aynı backend'e yönlendiği görülür.
+--
+
+* Değer kaynağının *Sorgu Dizesi Parametresi* seçildiği durum:
++
+--
+Aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/rest/gets/v10/first`
+
+*Backend URL:* `http://localhost:12109/rest/gets/v10/first`
+
+*Değer Kaynağı:* Sorgu Dizesi Parametresi
+*Sorgu Dizesi Parametre Adı:* `priority`
+====
+
+.Yönlendirme
+image::idempotent_request_query_param_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *GET* seçilir.
+*Kaydet* butonuna tıklanır.
+
+** Test
+
+Uygulamaya giriş yapılır.
+Sol menüden *Katalog* altında bulunan *API*'ye tıklanır.
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+*İstek -> Parametreler -> API Sorgu Parametreleri* bölümünde *priority* anahtarının karşısına *1* değeri girilir. Çalıştır'a tıklanır.
+Atılan istek backend'lerden herhangi birine yönlenebilir. *Sorgu dizesi parametre* değeri değişmediği sürece isteklerin her zaman aynı backend'e yönlendiği görülür.
+--
+
+* Değer kaynağının *İstek Gövdesi JsonPath* seçildiği durum:
++
+--
+Aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/rest/gets/v10/first`
+
+*Backend URL:* `http://localhost:12109/rest/gets/v10/first`
+
+*Değer Kaynağı:* İstek Gövdesi JsonPath
+*JSON Path:* `$.msisdn`
+====
+
+.Yönlendirme
+image::idempotent_json_path_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *GET* seçilir.
+*Kaydet* butonuna tıklanır.
+
+** Test
+
+Postman veya benzeri bir REST client üzerinden aşağıdaki gibi bir istek oluşturulur.
+Gövde kısmına aşağıdaki json değeri girilir ve `http://localhost:12102/idempotent` URL'ine istek atılır.
+[source,json]
+{
+    "offerKey": "OFR1234",
+    "msisdn": "905554443322"
+}
+
+Atılan istek backend'lerden herhangi birine yönlenebilir. *Msisdn* değeri değişmediği sürece isteklerin her zaman aynı backend'e yönlendiği görülür.
+--
+
+* Değer kaynağının *İstek Gövdesi XPath* seçildiği durum:
++
+--
+** API Oluşturma
+
+Uygulamaya giriş yapılır.
+Sol menüden *Katalog* altında bulunan *API*'ye tıklanır.
+*Yeni API Oluştur* butonuna tıklanır.
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Idempotent Load Balancing
+
+*Açıklama:* Idempotent Load Balancing
+
+*Durum:* Aktif
+
+*Tip:* SOAP
+
+*EndPoint:* `/idempotent`
+
+*Metot:* getGenres
+
+*Asenkron mu?:* Hayır
+====
+
+.API Oluşturma
+image::idempotent_xpath_api_create.png[API Oluşturma]
+
+Aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/soap/posts/v10/first`
+
+*Backend URL:* `http://localhost:12109/soap/posts/v10/first`
+
+*Değer Kaynağı:* İstek Gövdesi XPath
+*XPath:* `Envelope/Body/getGenres/username[text()]`
+====
+
+.Yönlendirme
+image::idempotent_xpath_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *POST* seçilir.
+*Kaydet* butonuna tıklanır.
+
+** Test
+
+SoapUI veya benzeri bir SOAP Client üzerinden `http://localhost:12102/idempotent` URL'ine aşağıdaki istek atılır:
+[source,xml]
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://ttmuzikfuncs.proarge.com/wsdl/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <wsdl:getGenres>
+         <username>ttm_ios</username>
+         <password>l1st4n_7he_mu5ic!</password>
+         <!--Optional:-->
+         <cdata>1</cdata>
+      </wsdl:getGenres>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+Atılan istek backend'lerden herhangi birine yönlenebilir. *username* değeri değişmediği sürece isteklerin her zaman aynı backend'e yönlendiği görülür.
+--
+
+* Değer kaynağının *İş Nesnesi Alanı* seçildiği durum:
++
+--
+*Katalog -> API Kullanıcıları* ekranında tanımlı, `ID` değeri `451fa26738a04a39b95e79fcaf6c6fa2`, `apiKey` değeri `f5a66a64-6e7c-4041-84e7-4d62e96fb7dc` olan bir kullanıcı olduğu varsayılıyor.
+
+.Kimlik Doğrulama Yöntemine Sahip API Kullanıcısı
+image::api_consumer_with_api_key.png[Kimlik Doğrulama Yöntemine Sahip API Kullanıcısı]
+
+Aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/rest/gets/v10/first`
+
+*Backend URL:* `http://localhost:12109/rest/gets/v10/first`
+
+*Değer Kaynağı:* İş Nesnesi Alanı
+*İş Nesnesi Özelliği:* `API Kullanıcı Id`
+====
+
+.Yönlendirme
+image::idempotent_business_obj_property_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *GET* seçilir.
+*Kaydet* butonuna tıklanır.
+
+** Test
+
+Postman veya benzeri bir REST client üzerinden `http://localhost:12102/idempotent?apiKey=f5a66a64-6e7c-4041-84e7-4d62e96fb7dc` URL'ine istek atılır.
+Atılan istek backend'lerden herhangi birine yönlenebilir. *apiKey* değeri değişmediği sürece isteklerin her zaman aynı backend'e yönlendiği görülür.
+--
+
+* Değer kaynağının *İş Nesnesi Özelliği* seçildiği durum:
++
+--
+Sol menüden *Katalog -> Katalog Ayarları* altında bulunan *Özellik Tanımları*'na tıklanır.
+*Özellik Tanımı Oluştur* butonuna tıklanır.
+Aşağıdaki bilgiler doldurulur:
+====
+*Ad:* aggregatorId
+
+*Nesne Türü:* API Kullanıcısı
+
+*Veri Giriş Türü:* Tek Satırlı Metin Alanı
+
+*Veri Tipi:* Metin
+
+*Varsayılan Değer:* 11
+
+*Zorunlu Alan mı?:* Hayır
+
+*Maksimum Uzunluk:* Boş
+
+*Düzenli İfade:* Boş
+
+*Görünüm Sırası:* 1
+====
+
+.Özellik Tanımı Oluşturma
+image::attribute_definition_create.png[Özellik Tanımı Oluşturma]
+
+*Kaydet* butonuna tıklanır.
+
+Sol menüden *Katalog* altında bulunan *API Kullanıcıları*'na tıklanır.
+apiKey değeri `f5a66a64-6e7c-4041-84e7-4d62e96fb7dc` olan API Kullanıcısının *güncelle* butonuna tıklanır.
+Özellikler sekmesinde bulunan `aggregatorId` alanına `8` değeri girilir.
+*Güncelle* butonuna tıklanır.
+
+API oluştururken aşağıdaki bilgiler doldurulur:
+====
+*Backend URL:* `http://localhost:12107/rest/gets/v10/first`
+
+*Backend URL:* `http://localhost:12109/rest/gets/v10/first`
+
+*Değer Kaynağı:* İş Nesnesi Özelliği
+*Nesne Türü:* `API Kullanıcısı`
+*Özellik:* `aggregatorId`
+====
+
+.Yönlendirme
+image::idempotent_business_obj_attribute_routing_tab.png[Yönlendirme]
+
+Backend Http Metot *GET* seçilir.
+*Kaydet* butonuna tıklanır.
+
+** Test
+
+Postman veya benzeri bir REST client üzerinden `http://localhost:12102/idempotent?apiKey=f5a66a64-6e7c-4041-84e7-4d62e96fb7dc` URL'ine istek atılır.
+Atılan istek backend'lerden herhangi birine yönlenebilir. *apiKey* değeri değişmediği sürece isteklerin her zaman aynı backend'e yönlendiği görülür.
+--

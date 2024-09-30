@@ -1,0 +1,174 @@
+= Hata Kodları
+
+Mirket hata kodları, api üzerinde bulunan İstek Kuralları özelliği ile birlikte kullanılarak istek başlıklarına tanımlanan kurallara göre özel hata kodu fırlatılması için kullanılan bir özelliktir. Ayrıca hata kodları özelliği, Mirket'in fırlattığı (`GW-ERR` şeklinde kalıbı olan) hata kodlarınıda organizasyon, api kullanıcısı veya api altında ezerek, Mirket'in fırlatmış olduğu hata kodlarınıda özelleştirebilirsiniz.
+
+Api üzerinde bulunan istek kuralları özelliği ile ilgili daha fazla bilgi edinmek için, ilgili bağlantıya tıklayarak demo videosunu izleyebilirsiniz.
+
+* https://drive.google.com/file/d/1KpIJK5VMySsbFUxbpO66JBoAofzVcoPk/view?usp=share_link
+
+Özel hata kodlarını ne gibi durumlarda ihtiyacımız olabilir bir kaç örnek vermek gerekirse,
+
+- Apinin istek başlığından bulunan özel bir anahtarın kontrolü.
+
+____
+Apimizin `apiKey` anahtar adında bir istek başlığı aldığını varsayalım. *İstek başlığına sahip olmayan* istekler için özel bir hata dönmek istediğimizde, Organizasyon altına tanımladığımız özel hata kodumuzu, Api İstek Kuralları tabından İstek Başlığı Koşulu tanımlanarak *istek başlığına sahip olmayan* istekler için özel hata kodu fırlattırılabilir.
+____
+
+- Apinin istek başlığından bulunan özel bir anahtarın değer kontrolü.
+
+____
+Apimizin `apiKey` anahtar adında bir istek başlığı aldığını varsayalım. *İstek başlığının bir değeri olmayan* istekler için özel bir hata dönmek istediğimizde, Organizasyon altına tanımladığımız özel hata kodumuzu, Api İstek Kuralları tabından İstek Başlığı Koşulu tanımlanarak *istek başlığının değerine sahip olmayan* istekler için özel hata kodu fırlattırılabilir.
+____
+
+
+== Organizasyon Altına Hata Kodu Tanımlama
+
+=== Özel Hata Kodu Tanımlama
+
+Bir organizasyon altına özel hata kodu tanımlamasını şu adımları takip ederek yapabiliriz.
+
+Sol menüden `Ayarlar` -> `Hata Kodları` takip edilerek `Hata Kodları` sayfasına erişilir. Sayfanın sağ alt tarafında bulunan `Hata Kodu Oluştur` butonu ile `Hata Kodu Oluştur` pop-up'ına erişilir. Buradaki alanlara aşağıdaki gibi tanımlamarak yapılarak özel bir hata kodunu organizasyonun altına tanımlayabiliriz.
+
+
+====
+*Mirket Hata Kodu*: KK-ERR-101
+
+*Gateway Hata Kodu*: KK-ERR-101
+
+*İçerik Tipi*: application/json
+
+*Organizasyon*: KK
+
+*Http Durum Kodu*: 400
+
+*Açıklama*: X-API-USERNAME istek başlığı null olamaz.
+
+*API için özelleştirilebilir mi?*: Evet
+
+*API Kullanıcısı için özelleştirilebilir mi?*: Evet
+
+*Hata dönüşümü özelliği ile dönüştürülebilir mi?*: Hayır
+
+*Cevap*:
+
+[source,json]
+----
+{
+  "status": {
+    "code": "KK-ERR-101",
+    "description": "API_USERNAME_CANNOT_BE_NULL"
+  }
+}
+----
+
+====
+
+=== Mirket Hata Kodu Özelleştirme
+
+Bir organizasyon altına Mirket hata kodlarından birinin özelleştirmesi, <<_özel_hata_kodu_tanımlama>>'da bulunan adımlar takip edilerek yapılabilir. Burada dikkat edilmesi gereken nokta, *Gateway Hata Kodu* alanına özelleştirilecek Mirket hata kodunun yazılacak olması.
+
+Örneğin, `GW-ERR-008` (İp adresine izin verilmiyor) Mirket hatasını aşağıdaki adımlar takip edilerek özelleştirilebilir.
+
+
+====
+*Mirket Hata Kodu*: GW-ERR-008
+
+*Gateway Hata Kodu*: KK-ERR-008
+
+*İçerik Tipi*: application/json
+
+*Organizasyon*: KK
+
+*Http Durum Kodu*: 500
+
+*Açıklama*: Internal Error
+
+*API için özelleştirilebilir mi?*: Evet
+
+*API Kullanıcısı için özelleştirilebilir mi?*: Evet
+
+*Hata dönüşümü özelliği ile dönüştürülebilir mi?*: Hayır
+
+*Cevap*:
+
+[source,json]
+----
+{
+  "status": {
+    "code": "KK-ERR-008",
+    "description": "Ip address not allowed."
+  }
+}
+----
+
+====
+
+== Api Kullanıcısı Altına Hata Kodu Tanımlama
+
+Sadece tanımlanan api kullanıcısının yaptığı isteklerde kullanılmak üzere bir hata kodu tanımlamak veya özelleştirmek istenilirse aşağıdaki adımlar takip edilebilir.
+
+- Sol menüden `Katalog` -> `Api Kullanıcıları` takip edilerek `Api Kullanıcıları` sayfasına erişilir.
+- Hata kodu tanımlaması yapılacak api kullanıcısının *Güncelle* butonuna tıklanır.
+- Açılan `API Kullanıcısı Düzenle` sayfasında bulunan `Hata Kodları` tabına geçilir.
+- `Özelleştirilmiş Hatalar Var` checkbox'ı işaretlenir.
+- Sayfanın sağ alt tarafında bulunan `Hata Kodu Oluştur` butonu ile `Hata Kodu Oluştur` pop-up'ına erişilir.
+
+<<Organizasyon Altına Hata Kodu Tanımlama>> bölümündeki tanım adımlar takip edilerek yapılabilir. Burada dikkat edilmesi gereken nokta, api kullanıcısı hali hazırda bir organizasyon altında bulunduğu için hata kodu tanımında *Organizasyon* alanının bulunmamasıdır.
+
+____
+Api kullanıcısı altına tanımlanan bir hata kodu, organizasyon altına tanımlanan hata kodundan önceliklidir. Yani, `KK-ERR-101` hata kodu hem organizasyonda hemde api kullanıcısı altında tanımlanmış ise, *tanımlanan api kullanıcısının yaptığı isteklerde* api kullanıcısı altında tanımlanan hata kodu kullanılacaktır.
+____
+
+== Api Altına Hata Kodu Tanımlama
+
+Sadece tanımlanan apide kullanılmak üzere bir hata kodu tanımlamak veya özelleştirmek istenilirse aşağıdaki adımlar takip edilebilir.
+
+- Sol menüden `Katalog` -> `API` takip edilerek `API Listesi` sayfasına erişilir.
+- Hata kodu tanımlaması yapılacak apinin *Güncelle* butonuna tıklanır.
+- Açılan `API Düzenle` sayfasında bulunan `Hata Kodları` tabına geçilir.
+- `Özelleştirilmiş Hatalar Var` checkbox'ı işaretlenir.
+- Sayfanın sağ alt tarafında bulunan `Hata Kodu Oluştur` butonu ile `Hata Kodu Oluştur` pop-up'ına erişilir.
+
+<<Organizasyon Altına Hata Kodu Tanımlama>> bölümündeki tanım adımlar takip edilerek yapılabilir.
+
+____
+Api altına tanımlanan bir hata kodu, organizasyon altına tanımlanan hata kodundan önceliklidir. Yani, `KK-ERR-101` hata kodu hem organizasyonda hemde api altında tanımlanmış ise, *tanımlanan apiye yapılan isteklerde* api altında tanımlanan hata kodu kullanılacaktır.
+____
+
+== Tanımlanan Hata Kodlarının Öncelik Sıralaması
+
+Hata kodları, üç alana tanımlanabiliyor. Bunlar organizasyon, api kullanıcısı ve api. Bu üç alana tanımlanan hata kodları aynı hata koduna sahip olabilir veya farklı hata kodları olabilir.
+
+Aynı hata kodu olduğu durumlarda ise hata kodu öncelik sırası devreye girer. Öncelik sırası şu şekildedir.
+
+====
+API Kullanıcısı -> API -> Organizasyon
+====
+
+Örneğin,
+
+_Durum 1_
+
+`KK-ERR-001` hata kodunun organizasyon üzerinde tanımlandığını, API üzerinde de istek kurallarında gerekli tanımlamaların yapıldığını varsayalım.
+
+API'ye yapılan isteklerde, istek kuralındaki koşul sağlanmıyor ise *organizasyon üzerinde tanımlı olan hata kodunun* cevabının döndüğü görülür.
+
+_Durum 2_
+
+`KK-ERR-001` hata kodunu organizasyona ek olarak API üzerine de tanımlama yaptığımızı düşünelim.
+
+API'ye yapılan isteklerde, istek kuralındaki koşul sağlanmıyor ise *API üzerinde tanımlı olan hata kodunun* cevabının döndüğü görülür.
+
+Organizasyon altında bulunan ama *API üzerinde hata kodu tanımı yapılmayan* API'lerde ise *organizasyon üzerinde tanımlı olan hata kodunun* cevabının döndüğü görülür.
+
+_Durum 3_
+
+`KK-ERR-001` hata kodunu organizasyon ve API'ye ek olarak API Kullanıcısı üzerine de tanımlama yaptığımızı düşünelim.
+
+*Hata kodu tanımı yapılan* API kullanıcısı ile *hata kodu tanımı yapılan* API'ye yapılan isteklerde, istek kuralındaki koşul sağlanmıyor ise *API kullanıcısı üzerinde tanımlı olan hata kodunun* cevabının döndüğü görülür.
+
+Aynı organizasyon altında bulunan *hata kodu tanımı yapılmamış* başka bir API kullanıcısı ile *hata kodu tanımı yapılmış* API'ye yapılan isteklerde, istek kuralındaki koşul sağlanmıyor ise *API üzerinde tanımlı olan hata kodunun* cevabının döndüğü görülür.
+
+Hata kodlarıyla ilgili daha fazla bilgi edinmek için, ilgili bağlantıya tıklayarak demo videosunu izleyebilirsiniz.
+
+* https://drive.google.com/file/d/1jz_PPLEBwwxj31waotlBMIZWCjJPdgqu/view

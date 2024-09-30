@@ -1,0 +1,53 @@
+= HTTP Ayarları
+
+Mirkette API'lerde kullanılmak üzere ortak bir HTTP bağlantı havuzu bulunmaktadır.
+Bağlantı havuzunun, *Maksimum Bağlantı*, *Route Başına Maksimum Bağlantı* gibi ayarlarını değiştirebiliriz.
+
+== Sistem Geneli HTTP Ayarları
+
+Sol menüden `Ayarlar` -> `HTTP Ayarları` menüsüne tıklayarak `HTTP Ayarları` sayfasına erişerek HTTP ayarlarını yapabiliriz.
+
+====
+Değişiklik yapabileceğimiz HTTP bağlantı havuzu ayarları şunlardır:
+
+- *Maksimum Bağlantı*
+
+- *Route Başına Maksimum Bağlantı*
+
+- *Bağlantı Zaman Aşımı (milisaniye)*
+
+- *Soket Zaman Aşımı Süresi (milisaniye)*
+
+- *Bağlantı Açık Kalsın mı?*
+
+    * *Bağlantı Açık Kalma Süresi (milisaniye)*
+
+- *Retry Özelliği Aktif Kullanılsın mı?*
+
+    * *Deneme Sayısı*
+
+    * *Tekrar Deneme Zamanı (milisaniye)*
+
+====
+
+.Sistem Geneli HTTP Ayarları
+image::http-settings/system-http-settings.png[Sistem Geneli HTTP Ayarları]
+
+== API Bazlı HTTP Ayarları
+
+Mirkette bulunan ortak HTTP bağlantı havuzunu kullanmak yerine API özelinde bir HTTP bağlantı havuzu tanımlanabilir. Tanımlama yapılan API, sistem geneli ortak HTTP bağlantı havuzu yerine artık kendi HTTP bağlantı havuzunu kullanacaktır.
+
+Bir API'ye özel HTTP bağlantı havuzu tanımlamak için aşağıdaki adımlar takip edilebilir.
+
+- Sol menüden `Katalog` -> `API` takip edilerek `API Listesi` sayfasına erişilir.
+
+- Özel HTTP bağlantı havuzu tanımlanacak olan apinin *Güncelle* butonuna tıklanarak `API Düzenleme` sayfasına erişilir.
+- Burada bulunan `Kaynak Yönetimi` -> `Api Bağlantı Havuzu` tabı altından özel HTTP bağlantı havuzu tanımlamaları <<_sistem_geneli_http_ayarları>>'ındaki gibi yapılabilir.
+- İlgili tanımlamalar yapılıp API kaydedildikten sonra, API artık kendi özel HTTP bağlantı havuzunu kullanacaktır.
+
+.API Bazlı HTTP Ayarları
+image::http-settings/api-based-http-settings.png[API Bazlı HTTP Ayarları]
+
+Genel ve api bazlı HTTP bağlantı havuzu özelliği ile ilgili daha fazla bilgi edinmek için, ilgili bağlantıya tıklayarak demo videosunu izleyebilirsiniz.
+
+* https://drive.google.com/file/d/1jzcvXstfwwrdQfRtPVCYO5AlUdjV7YD2/view?usp=share_link

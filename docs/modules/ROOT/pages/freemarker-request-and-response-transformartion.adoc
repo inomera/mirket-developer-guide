@@ -1,0 +1,299 @@
+= Freemarker Request & Response Dönüşümü
+
+== REST to SOAP
+
+Rest'ten Soap'a bir Freemarker dönüşüm örneği yapalım.
+Bu örnek için senaryomuz şu şekilde, dışarda bir SOAP servisimiz olduğunu varsayalım.
+Biz bu SOAP servisine Rest bir Mirket apisi ile istek yapmaya çalışalım.
+
+=== API Oluşturma
+
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Number to Dollars | REST to SOAP | Freemarker Transformation
+
+*Açıklama:* Geçirilen sayının sıfır olmayan dolar tutarını döndüren, açık kaynak soap apisine istek & cevap dönüşümü kullanarak soap isteği atan rest bir mirket apisi.
+Kaynak: https://documenter.getpostman.com/view/8854915/Szf26WHn#2d448676-ccb9-44b6-87f6-4d311a
+
+*Durum:* Aktif
+
+*Tip:* REST
+
+*EndPoint:* `/freemarker/number-to-dollars`
+
+*Metot:* POST
+====
+
+.API Oluşturma
+image::freemarker-req-and-res-transformation-rest-to-soap-api/freemarker-req-and-res-transformation-api-definition.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *Basit Yönlendirme* seçilir.
+====
+*Backend Http Metod:* POST
+
+*BackendUri:* https://www.dataaccess.com/webservicesserver/NumberConversion.wso
+====
+
+.Yönlendirme
+image::freemarker-req-and-res-transformation-rest-to-soap-api/freemarker-req-and-res-transformation-api-routing.png[Yönlendirme]
+
+___
+*Dönüşüm* sekmesine tıklanır ve *İstek Veri Dönüşümü* tabında *Freemarker* seçilir.
+
+Gidiceğimiz SOAP Servisin request xml'i aşağıdaki şekilde.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <NumberToDollars xmlns="http://www.dataaccess.com/webservicesserver/">
+      <dNum>100</dNum>
+    </NumberToDollars>
+  </soap:Body>
+</soap:Envelope>
+----
+
+Freemarker dönüşüm editörüne bu SOAP request xml'imizi yapıştırıyoruz. Konfigüratif olan `dNum` değerimizi Mirket apimize gelen ve contet'e tanımlanan request body'imiz üzerinden `${body.num}` şeklinde çekiyoruz.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <NumberToDollars xmlns="http://www.dataaccess.com/webservicesserver/">
+      <dNum>${body.num}</dNum>
+    </NumberToDollars>
+  </soap:Body>
+</soap:Envelope>
+----
+
+___
+
+*Cevap Veri Dönüşümü* tabında *Freemarker* seçilir.
+
+Gittiğimiz SOAP servisin bize döndüğü cevap xml'ini json'a dönüştürmek için bir response transformation kodu yazalım.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <m:NumberToDollarsResponse xmlns:m="http://www.dataaccess.com/webservicesserver/">
+            <m:NumberToDollarsResult>one hundred dollars</m:NumberToDollarsResult>
+        </m:NumberToDollarsResponse>
+    </soap:Body>
+</soap:Envelope>
+----
+
+SOAP servisin bize döndüğü cevap xml'i yukarıdaki gibidir. Biz bu SOAP cevap xml'i içinde `NumberToDollarsResult` etiketleri arasındaki değeri alıp Mirket apimizin json cevabımına eklemeye çalışacağız. Bunun için context'e tanımlanan bu SOAP cevap xml'in tagları üzerinden aşağıdaki şekilde erişerek json cevabımızı oluşturabiliriz.
+
+[source,json]
+----
+{
+	"result": ${body.Body.NumberToDollarsResponse.NumberToDollarsResult}
+}
+----
+
+.Dönüşüm
+image::freemarker-req-and-res-transformation-rest-to-soap-api/freemarker-req-and-res-transformation-api-transformation.png[Dönüşüm]
+
+___
+
+*API İsteği Başlıkları* tabında aşağıdaki gibi bir istek başlığı tanımlanır.
+
+====
+*İstek Başlığı İsmi:* Content-Type
+
+*İstekte Gelen Başlığın Üzerine Yaz:* İşaretli
+
+*Değer Kaynağı:* Sabit
+
+*Sabit Değer*: text/xml; charset=utf-8
+====
+
+*Kaydet* butonuna tıklayarak apimi kaydediyorum.
+
+=== Test
+
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+
+*İstek* bölümünde *Gövde* tabına tıklanır. Aşağıdaki gibi bir istek gövdesi eklenir.
+
+[source,json]
+----
+{
+  "num": 50
+}
+----
+
+Çalıştır'a tıklanır.
+
+Örnek cevap:
+
+[source,json]
+----
+{
+  "results": "five hundred dollars"
+}
+----
+
+== SOAP to REST
+
+JSONPlaceholder'da bulunan gönderi güncelleme public apisine, SOAP bir mirket apisi ile istek atmaya çalışalım.
+
+=== API Oluşturma
+
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Update Post - JSONPlaceholder | SOAP to REST | Freemarker Transformation
+
+*Açıklama:* JSONPlaceholder da REST bir api olan gönderi güncelleme apisine istek ve cevap dönüşümü ile soap isteği yapabilmeyi sağlayan mirket apisi.
+
+*Durum:* Aktif
+
+*Tip:* SOAP
+
+*EndPoint:* `/freemarker/posts-operations`
+
+*Metot:* updatePostRequest
+====
+
+.API Oluşturma
+image::freemarker-req-and-res-transformation-soap-to-rest-api/freemarker-req-and-res-transformation-api-definition.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *Basit Yönlendirme* seçilir.
+====
+*Backend Http Metod:* PUT
+
+*BackendUri:* https://jsonplaceholder.typicode.com/posts/1
+====
+
+.Yönlendirme
+image::freemarker-req-and-res-transformation-soap-to-rest-api/freemarker-req-and-res-transformation-api-routing.png[Yönlendirme]
+
+___
+
+*Dönüşüm* sekmesine tıklanır ve *İstek Veri Dönüşümü* tabında *Freemarker* seçilir.
+
+Mirket apimizi tetiklemek için kullandığımız SOAP request xml'i:
+
+[source,xml]
+----
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://jsonplaceholder.com/wsdl/">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <wsdl:updatePostRequest>
+            <userId>1</userId>
+            <id>2</id>
+            <title>qui est esse</title>
+            <body>est rerum tempore vitae sequi sint nihil reprehenderit</body>
+        </wsdl:updatePostRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+----
+
+Mirket API'mize geldiğimiz SOAP XML request'imizi JSONPlaceholder'a giderken kullanacağımız JSON request'imize dönüştürmek için request transformation kodumuzu yazalım.
+SOAP request xml'imize context üzerinden SOAP etiketleri aracılıyla erişerek aşağıdaki gibi json isteğimizi oluşturabiliriz.
+
+[source,json]
+----
+{
+    "userId": "${body.Body.updatePostRequest.userId}",
+    "id": "${body.Body.updatePostRequest.id}",
+    "title": "${body.Body.updatePostRequest.title}",
+    "body": "${body.Body.updatePostRequest.body}"
+}
+----
+
+___
+
+*Cevap Veri Dönüşümü* tabında *Freemarker* seçilir.
+
+Gittiğimiz REST apinin bize döndüğü cevap json'ını soap xml'ine dönüştürmek için bir response transformation kodu yazalım.
+
+[source,json]
+----
+{
+    "id": 1,
+    "title": "foo",
+    "body": "bar",
+    "userId": 1
+}
+----
+
+Yukarıda JSONPlaceholder'ın bize döndüğü cevap json'ını context üzerinden json key değeri ile erişerek SOAP cevabımızı aşağıdaki gibi oluşturabiliriz.
+
+[source,xml]
+----
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://jsonplaceholder.com/wsdl/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <wsdl:updatePostResponse>
+         <userId>${body.userId}</userId>
+         <id>${body.id}</id>
+         <title>${body.title}</title>
+         <body>${body.body}</body>
+      </wsdl:updatePostResponse>
+   </soapenv:Body>
+</soapenv:Envelope>
+----
+
+.Dönüşüm
+image::freemarker-req-and-res-transformation-soap-to-rest-api/freemarker-req-and-res-transformation-api-transformation.png[Dönüşüm]
+
+___
+
+*API İsteği Başlıkları* tabında aşağıdaki gibi bir istek başlığı tanımlanır.
+
+====
+*İstek Başlığı İsmi:* Content-Type
+
+*İstekte Gelen Başlığın Üzerine Yaz:* İşaretli
+
+*Değer Kaynağı:* Sabit
+
+*Sabit Değer*: application/json
+====
+
+*Kaydet* butonuna tıklayarak apimi kaydediyorum.
+
+=== Test
+
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+
+*İstek* bölümünde *Gövde* tabına tıklanır. Aşağıdaki gibi bir istek gövdesi eklenir.
+
+[source,xml]
+----
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://jsonplaceholder.com/wsdl/">
+  <soapenv:Body>
+    <wsdl:updatePostRequest>
+      <userId>1</userId>
+      <id>2</id>
+      <title>qui est esse</title>
+      <body>est rerum tem</body>
+    </wsdl:updatePostRequest>
+  </soapenv:Body>
+</soapenv:Envelope>
+----
+
+Çalıştır'a tıklanır.
+
+Örnek cevap:
+
+[source,xml]
+----
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://jsonplaceholder.com/wsdl/">
+  <soapenv:Body>
+    <wsdl:updatePostResponse>
+       <userId>1</userId>
+       <id>2</id>
+       <title>qui est esse</title>
+       <body>est rerum tem</body>
+    </wsdl:updatePostResponse>
+  </soapenv:Body>
+</soapenv:Envelope>
+----

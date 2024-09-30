@@ -1,0 +1,804 @@
+= Groovy Request & Response Dönüşümü
+
+== REST to SOAP
+
+Rest'ten Soap'a bir dönüşüm örneği yapalım.
+Örnek için senaryomuz şu şekilde, dışarda bir SOAP servisimiz olduğunu varsayalım.
+Biz SOAP servisine Rest bir Mirket apisi ile istek yapmaya çalışalım.
+
+=== API Oluşturma
+
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Number to Dollars | REST to SOAP
+
+*Açıklama:* Geçirilen sayının sıfır olmayan dolar tutarını döndüren, açık kaynak soap apisine istek & cevap dönüşümü kullanarak soap isteği atan rest bir mirket apisi.
+Kaynak: https://documenter.getpostman.com/view/8854915/Szf26WHn#2d448676-ccb9-44b6-87f6-4d311a
+
+*Durum:* Aktif
+
+*Tip:* REST
+
+*EndPoint:* `/number-to-dollars`
+
+*Metot:* POST
+====
+
+.API Oluşturma
+image::groovy-req-and-res-transformation-rest-to-soap/groovy-req-and-res-transformation-rest-to-soap-api-definition.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *Basit Yönlendirme* seçilir.
+====
+*Backend Http Metod:* POST
+
+*BackendUri:* https://www.dataaccess.com/webservicesserver/NumberConversion.wso
+====
+
+___
+*Dönüşüm* sekmesine tıklanır ve *İstek Veri Dönüşümü* tabında *Groovy* seçilir.
+
+Bu adımda karşımıza çıkan örnek bir groovy kodu editörde gözükecek.
+
+[source,groovy]
+----
+package com.mirket.gateway.groovy;
+public class GroovyTransformationScriptImpl implements GroovyTransformationScript {
+    public byte[] transform(byte[] input) {
+        return input;
+    }
+}
+
+----
+
+Bu örnek kodu IDE üzerinde düzenleyerek REST request body'imi json'dan SOAP XML'ine dönüştüreceğim.
+
+IDE üzerinde `RequestTransformation` adında bir groovy sınıfı oluşturuyorum.
+Hemen ardından static main metotumuzu tanımlıyoruz.
+
+[source,groovy]
+----
+class RequestTransformation {
+    static void main(String[] args) {
+
+    }
+}
+----
+
+Groovy kodunu IDE'de daha rahat test edebilmek adına main metodumun içerisine örnek bir json request body'imi tanımlıyorum.
+
+[source,groovy]
+----
+String requestJson = '''{"num": 50}'''
+----
+
+Request body'imdeki `num` değerini almak için json'ı ayrıştırmam gerekiyor. Bunun için `JsonSlurper` tanımlıyorum. Daha sonrasında `parseText` metodu yardımı ile json'ını ayrıştırıyorum. Ayrıştırma sonucunda atadığım obje üzerinden `num` değerini çekiyorum.
+
+[source,groovy]
+----
+JsonSlurper jsonSlurper = new JsonSlurper()
+Object object = jsonSlurper.parseText(requestJson)
+String num = object.getAt("num")
+----
+
+Gidiceğimiz SOAP Servisin request xml'i aşağıdaki şekilde.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <NumberToDollars xmlns="http://www.dataaccess.com/webservicesserver/">
+      <dNum>100</dNum>
+    </NumberToDollars>
+  </soap:Body>
+</soap:Envelope>
+----
+
+Json request'imizden aldığımız num değerini alıp, soap request xml'inde `<dNum>` tagları arasına ekliyoruz.
+
+[source,groovy]
+----
+String soapRequest = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        " <soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+        "   <soap:Body>\n" +
+        "     <NumberToDollars xmlns=\"http://www.dataaccess.com/webservicesserver/\">\n" +
+        "       <dNum>${num}</dNum>\n" +
+        "     </NumberToDollars>\n" +
+        "   </soap:Body>\n" +
+        " </soap:Envelope>"
+----
+
+SOAP xml'imin düzgün oluşup oluşmadığını görmek için main metodumda consola yazdırıyorum.
+
+[source,groovy]
+----
+println(soapRequest)
+----
+
+Main metodumu çalıştırdıktan sonra aşağıdaki gibi bir çıktının console'a çıktığını görüyorum.
+
+[source]
+----
+> Task :RequestTransformation.main()
+<?xml version="1.0" encoding="utf-8"?>
+ <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+     <NumberToDollars xmlns="http://www.dataaccess.com/webservicesserver/">
+       <dNum>50</dNum>
+     </NumberToDollars>
+   </soap:Body>
+ </soap:Envelope>
+----
+
+Sınıfımızın geliştirme sonucundaki tam hali aşağıda bulunuyor.
+
+[source,groovy]
+----
+class RequestTransformation {
+    static void main(String[] args) {
+        String requestJson = '''{"num": 50}'''
+
+        JsonSlurper jsonSlurper = new JsonSlurper()
+        Object object = jsonSlurper.parseText(requestJson)
+        String num = object.getAt("num")
+
+        String soapRequest = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                " <soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+                "   <soap:Body>\n" +
+                "     <NumberToDollars xmlns=\"http://www.dataaccess.com/webservicesserver/\">\n" +
+                "       <dNum>${num}</dNum>\n" +
+                "     </NumberToDollars>\n" +
+                "   </soap:Body>\n" +
+                " </soap:Envelope>"
+
+        println(soapRequest)
+    }
+}
+----
+
+Bu sınıfta yaptığımız transform'u api üzerine taşıyalım.
+
+[source,groovy]
+----
+package com.mirket.gateway.groovy;
+import groovy.json.JsonSlurper
+
+public class GroovyTransformationScriptImpl implements GroovyTransformationScript {
+   public byte[] transform(byte[] json) {
+        JsonSlurper jsonSlurper = new JsonSlurper()
+        Object object = jsonSlurper.parseText(new String(json))
+        String num = object.getAt("num")
+
+        String soapRequest = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "            <soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+                "              <soap:Body>\n" +
+                "                <NumberToDollars xmlns=\"http://www.dataaccess.com/webservicesserver/\">\n" +
+                "                  <dNum>${num}</dNum>\n" +
+                "                </NumberToDollars>\n" +
+                "              </soap:Body>\n" +
+                "            </soap:Envelope>"
+       return soapRequest.getBytes()
+    }
+}
+----
+
+IDE'de geliştirme kolaylığı olması açısından tanımladığımız `requestJson` ve console'a çıktı yazdırmak için kullandığımız `println(soapRequest)` metodunu kaldırıp `soapRequest` objemizi byte olarak dönüyoruz.
+
+___
+
+*Cevap Veri Dönüşümü* tabında *Groovy* seçilir.
+
+Gittiğimiz SOAP servisin bize döndüğü cevap xml'ini json'a dönüştürmek için bir response transformation kodu yazalım.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <m:NumberToDollarsResponse xmlns:m="http://www.dataaccess.com/webservicesserver/">
+            <m:NumberToDollarsResult>one hundred dollars</m:NumberToDollarsResult>
+        </m:NumberToDollarsResponse>
+    </soap:Body>
+</soap:Envelope>
+----
+
+
+IDE üzerinde `ResponseTransformation` adında bir groovy sınıfı oluşturuyorum.
+Hemen ardından static main metotumuzu tanımlıyoruz.
+
+[source,groovy]
+----
+class ResponseTransformation {
+    static void main(String[] args) {
+
+    }
+}
+----
+
+Groovy kodunu IDE’de daha rahat test edebilmek adına main metodumun içerisine örnek bir soap response xml’imi tanımlıyorum.
+
+[source,groovy]
+----
+byte[] input = new String("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+        "    <soap:Body>\n" +
+        "        <m:NumberToDollarsResponse xmlns:m=\"http://www.dataaccess.com/webservicesserver/\">\n" +
+        "            <m:NumberToDollarsResult>five hundred dollars</m:NumberToDollarsResult>\n" +
+        "        </m:NumberToDollarsResponse>\n" +
+        "    </soap:Body>\n" +
+        "</soap:Envelope>").getBytes()
+----
+
+Response soap xml'inde `NumberToDollarsResult` tagları arasındaki result değerimizi alabilmek için bir pattern tanımlıyorum.
+
+[source,groovy]
+----
+def numberToDollarsResultPattern = Pattern.compile("<m:NumberToDollarsResult>(.*?)</m:NumberToDollarsResult>")
+----
+
+Tanımladığımız pattern ile eşleşen değeri bize dönen bir metot yazıyorum.
+
+[source,groovy]
+----
+static Object getValueByPattern(String input, Pattern pattern) {
+    def matcher = pattern.matcher(input);
+    if (matcher.find()) {
+        return matcher.group(1)
+    }
+    return null
+}
+----
+
+Yazdığımız metodu main mateodumuzda çağırıp, `JsonOutput` yardımı ile json response'umuzu oluşturuyorum.
+
+[source,groovy]
+----
+def inputAsString = new String(input)
+def result = getValueByPattern(inputAsString, numberToDollarsResultPattern)
+def output = JsonOutput.toJson(results: result)
+----
+
+Json response'umuzun düzgün oluşup oluşmadığını görmek için main metodumda consola yazdırıyorum.
+
+[source,groovy]
+----
+println(output)
+----
+
+Main metodumu çalıştırdıktan sonra aşağıdaki gibi bir çıktının console’a çıktığını görüyorum.
+
+[source]
+----
+> Task :ResponseTransformation.main()
+{"results":"five hundred dollars"}
+----
+
+Sınıfımızın geliştirme sonucundaki tam hali aşağıda bulunuyor.
+
+[source,groovy]
+----
+import groovy.json.JsonOutput
+import java.util.regex.Pattern
+
+class ResponseTransformation {
+    static void main(String[] args) {
+        byte[] input = new String("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+                "    <soap:Body>\n" +
+                "        <m:NumberToDollarsResponse xmlns:m=\"http://www.dataaccess.com/webservicesserver/\">\n" +
+                "            <m:NumberToDollarsResult>five hundred dollars</m:NumberToDollarsResult>\n" +
+                "        </m:NumberToDollarsResponse>\n" +
+                "    </soap:Body>\n" +
+                "</soap:Envelope>").getBytes()
+
+        def numberToDollarsResultPattern = Pattern.compile("<m:NumberToDollarsResult>(.*?)</m:NumberToDollarsResult>")
+
+        def inputAsString = new String(input)
+        def result = getValueByPattern(inputAsString, numberToDollarsResultPattern)
+        def output = JsonOutput.toJson(results: result)
+
+        println(output)
+    }
+
+    static Object getValueByPattern(String input, Pattern pattern) {
+        def matcher = pattern.matcher(input);
+        if (matcher.find()) {
+            return matcher.group(1)
+        }
+        return null
+    }
+}
+----
+
+Bu sınıfta yaptığımız transform’u api üzerine taşıyalım.
+
+[source,groovy]
+----
+package com.mirket.gateway.groovy;
+
+import groovy.json.JsonOutput
+import java.util.regex.Pattern
+
+public class GroovyTransformationScriptImpl implements GroovyTransformationScript {
+    public byte[] transform(byte[] input) {
+        def numberToDollarsResultPattern = Pattern.compile("<m:NumberToDollarsResult>(.*?)</m:NumberToDollarsResult>")
+
+        def inputAsString = new String(input)
+        def result = getValueByPattern(inputAsString, numberToDollarsResultPattern)
+        def output = JsonOutput.toJson(results: result)
+        return output.getBytes();
+    }
+
+    static Object getValueByPattern(String input, Pattern pattern) {
+        def matcher = pattern.matcher(input);
+        if (matcher.find()) {
+            return matcher.group(1)
+        }
+        return null
+    }
+}
+----
+
+IDE’de geliştirme kolaylığı olması açısından tanımladığımız `input` ve console’a çıktı yazdırmak için kullandığımız `println(output)` metodunu kaldırıp output objemizi byte olarak dönüyoruz.
+
+___
+
+*API İsteği Başlıkları* tabında aşağıdaki gibi bir istek başlığı tanımlanır.
+
+====
+*İstek Başlığı İsmi:* Content-Type
+
+*İstekte Gelen Başlığın Üzerine Yaz:* İşaretli
+
+*Değer Kaynağı:* Sabit
+
+*Sabit Değer*: text/xml; charset=utf-8
+====
+
+*Kaydet* butonuna tıklayarak apimi kaydediyorum.
+
+
+=== Test
+
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+
+*İstek* bölümünde *Gövde* tabına tıklanır. Aşağıdaki gibi bir istek gövdesi eklenir.
+
+[source,json]
+----
+{
+  "num": 50
+}
+----
+
+Çalıştır'a tıklanır.
+
+Örnek cevap:
+
+[source,json]
+----
+{
+  "results": "five hundred dollars"
+}
+----
+
+== SOAP to REST
+
+JSONPlaceholder'da bulunan gönderi güncelleme public apisine SOAP bir mirket apisi ile istek atmaya çalışalım.
+
+=== API Oluşturma
+
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Update Post - JSONPlaceholder | SOAP to REST
+
+*Açıklama:* JSONPlaceholder da REST bir api olan gönderi güncelleme apisine istek ve cevap dönüşümü ile soap isteği yapabilmeyi sağlayan mirket apisi.
+
+*Durum:* Aktif
+
+*Tip:* SOAP
+
+*EndPoint:* `/groovy/posts-operations`
+
+*Metot:* updatePostRequest
+====
+
+.API Oluşturma
+image::groovy-req-and-res-transformation-soap-to-rest/groovy-req-and-res-transformation-soap-to-rest-definition.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *Basit Yönlendirme* seçilir.
+====
+*Backend Http Metod:* PUT
+
+*BackendUri:* https://jsonplaceholder.typicode.com/posts/1
+====
+
+___
+*Dönüşüm* sekmesine tıklanır ve *İstek Veri Dönüşümü* tabında *Groovy* seçilir.
+
+Mirket API'mize geldiğimiz SOAP XML request'imizi JSONPlaceholder'a giderken kullanacağımız JSON request'imize dönüştürmek için request transformation kodumuzu yazalım.
+
+Mirket apimizi tetiklemek için kullandığımız SOAP request xml'i:
+
+[source,xml]
+----
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://jsonplaceholder.com/wsdl/">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <wsdl:updatePostRequest>
+            <userId>1</userId>
+            <id>2</id>
+            <title>qui est esse</title>
+            <body>est rerum tempore vitae\nsequi sint nihil reprehenderit
+dolor beatae ea dolores neque\nfugiat blanditiis voluptate porro vel nihil
+molestiae ut reiciendis\nqui aperiam non debitis possimus qui neque nisi
+nulla</body>
+        </wsdl:updatePostRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+----
+
+IDE üzerinde `RequestTransformation` adında bir groovy sınıfı oluşturuyorum.
+Hemen ardından static main metotumuzu tanımlıyoruz.
+
+[source,groovy]
+----
+class RequestTransformation {
+    static void main(String[] args) {
+
+    }
+}
+----
+
+Groovy kodunu IDE'de daha rahat test edebilmek adına main metodumun içerisine örnek bir soap request xml'imi tanımlıyorum.
+
+[source,groovy]
+----
+String requestXml = "<soapenv:Envelope\n" +
+    "xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"\n" +
+    "xmlns:wsdl=\"http://jsonplaceholder.com/wsdl/\">\n" +
+    "    <soapenv:Header/>\n" +
+    "    <soapenv:Body>\n" +
+    "        <wsdl:updatePostRequest>\n" +
+    "            <userId>1</userId>\n" +
+    "            <id>2</id>\n" +
+    "            <title>qui est esse</title>\n" +
+    "            <body>est rerum tempore vitae\\nsequi sint nihil reprehenderit\n" +
+    "dolor beatae ea dolores neque\\nfugiat blanditiis voluptate porro vel nihil\n" +
+    "molestiae ut reiciendis\\nqui aperiam non debitis possimus qui neque nisi\n" +
+    "nulla</body>\n" +
+    "        </wsdl:updatePostRequest>\n" +
+    "    </soapenv:Body>\n" +
+    "</soapenv:Envelope>"
+----
+
+SOAP XML'i içindeki taglar arasındaki değerleri çekebilmek için bir tane parse metodu tanımlıyorum.
+
+[source,groovy]
+----
+static String parse(String tagName, String input) {
+    def matcher = Pattern.compile("<$tagName>(.*?)</$tagName>").matcher(input)
+    return matcher.find() ? matcher.group(1) : ""
+}
+----
+
+Yazdığımız `parse` metodumuzu main metodu içinde çağırarak SOAP XML request'imiz içindeki parametreleri çekiyoruz.
+
+[source,groovy]
+----
+def userId = parse("userId", requestXml)
+def id = parse("id", requestXml)
+def title = parse("title", requestXml)
+def body = parse("body", requestXml)
+----
+
+`JsonOutput` yardımı ile parametrelerimizi geçerek json request'imizi oluşturuyorum.
+
+[source,groovy]
+----
+def output = JsonOutput.toJson(userId: userId, id: id, title: title, body: body)
+----
+
+Json request'imiz düzgün oluşup oluşmadığını görmek için main metodumda consola yazdırıyorum.
+
+[source,groovy]
+----
+println(output)
+----
+
+Main metodumu çalıştırdıktan sonra aşağıdaki gibi bir çıktının console’a çıktığını görüyorum.
+
+[source]
+----
+> Task :RequestTransformation.main()
+{"userId":"1","id":"2","title":"qui est esse","body":"est rerum tempore vitae nsequi sint nihil reprehenderit"}
+----
+
+Sınıfımızın geliştirme sonucundaki tam hali aşağıda bulunuyor.
+
+[source,groovy]
+----
+import groovy.json.JsonOutput
+import java.util.regex.Pattern
+
+class RequestTransformation {
+    static void main(String[] args) {
+        String requestXml = "<soapenv:Envelope\n" +
+                "xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\"\n" +
+                "xmlns:wsdl=\"http://jsonplaceholder.com/wsdl/\">\n" +
+                "    <soapenv:Header/>\n" +
+                "    <soapenv:Body>\n" +
+                "        <wsdl:updatePostRequest>\n" +
+                "            <userId>1</userId>\n" +
+                "            <id>2</id>\n" +
+                "            <title>qui est esse</title>\n" +
+                "            <body>est rerum tempore vitae nsequi sint nihil reprehenderit</body>\n" +
+                "        </wsdl:updatePostRequest>\n" +
+                "    </soapenv:Body>\n" +
+                "</soapenv:Envelope>"
+
+        def userId = parse("userId", requestXml)
+        def id = parse("id", requestXml)
+        def title = parse("title", requestXml)
+        def body = parse("body", requestXml)
+
+        def output = JsonOutput.toJson(userId: userId, id: id, title: title, body: body)
+
+        println(output)
+    }
+
+    static String parse(String tagName, String input) {
+        def matcher = Pattern.compile("<$tagName>(.*?)</$tagName>").matcher(input);
+        return matcher.find() ? matcher.group(1) : ""
+    }
+}
+----
+
+Bu sınıfta yaptığımız transform’u api üzerine taşıyalım.
+
+[source,groovy]
+----
+package com.mirket.gateway.groovy;
+
+import groovy.json.JsonOutput
+import java.util.regex.Pattern
+import java.nio.charset.StandardCharsets
+
+public class GroovyTransformationScriptImpl implements GroovyTransformationScript {
+    public byte[] transform(byte[] input) {
+        def inputString = new String(input, StandardCharsets.UTF_8)
+        def userId = parse("userId", inputString)
+        def id = parse("id", inputString)
+        def title = parse("title", inputString)
+        def body = parse("body", inputString)
+
+        def output = JsonOutput.toJson(userId: userId, id: id, title: title, body: body)
+
+        return output.getBytes(StandardCharsets.UTF_8);
+    }
+
+    static String parse(String tagName, String input) {
+        def matcher = Pattern.compile("<$tagName>(.*?)</$tagName>").matcher(input);
+        return matcher.find() ? matcher.group(1) : ""
+    }
+}
+----
+
+IDE’de geliştirme kolaylığı olması açısından tanımladığımız `requestXml` ve console’a çıktı yazdırmak için kullandığımız `println(output)` metodunu kaldırıp output objemizi byte olarak dönüyoruz.
+
+___
+
+*Cevap Veri Dönüşümü* tabında *Groovy* seçilir.
+
+Gittiğimiz REST apinin bize döndüğü cevap json'ını soap xml'ine dönüştürmek için bir response transformation kodu yazalım.
+
+[source,json]
+----
+{
+    "id": 1,
+    "title": "foo",
+    "body": "bar",
+    "userId": 1
+}
+----
+
+IDE üzerinde `ResponseTransformation` adında bir groovy sınıfı oluşturuyorum.
+Hemen ardından static main metotumuzu tanımlıyoruz.
+
+[source,groovy]
+----
+class ResponseTransformation {
+    static void main(String[] args) {
+
+    }
+}
+----
+
+Groovy kodunu IDE’de daha rahat test edebilmek adına main metodumun içerisine örnek bir rest response json’ımızı tanımlıyorum.
+
+[source,groovy]
+----
+String responseJson = "{\"id\": 1, \"title\": \"foo\", \"body\": \"bar\", \"userId\": 1}"
+----
+
+Response body'deki değerleri almak için json'ı ayrıştırmam gerekiyor. Bunun için `JsonSlurper` tanımlıyorum. Daha sonrasında `parseText` metodu yardımı ile json'ını ayrıştırıyorum. Ayrıştırma sonucunda map üzerinden değerlerimi çekebilirim artık.
+
+[source,groovy]
+----
+JsonSlurper jsonSlurper = new JsonSlurper()
+Map<String, Object> responseMap = jsonSlurper.parseText(responseJson) as Map<String, Object>
+----
+
+SOAP response'umuzu bize dönen bir metot yazıyorum.
+
+[source,groovy]
+----
+static String generateSoapResponse(Map<String, Object> map) {
+    return "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:wsdl=\"http://jsonplaceholder.com/wsdl/\">\n" +
+            "  <soapenv:Body>\n" +
+            "    <wsdl:updatePostResponse>\n" +
+            "       <userId>${map.get("userId")}</userId>\n" +
+            "       <id>${map.get("id")}</id>\n" +
+            "       <title>${map.get("title")}</title>\n" +
+            "       <body>${map.get("body")}</body>\n" +
+            "    </wsdl:updatePostResponse>\n" +
+            "  </soapenv:Body>\n" +
+            "</soapenv:Envelope>"
+}
+----
+
+Yazdığımız metodu main mateodumuzda çağırıp, `response` adında bir String'e response'umuzu atıyorum.
+
+[source,groovy]
+----
+String response = generateSoapResponse(responseMap)
+----
+
+Json response'umuzun düzgün oluşup oluşmadığını görmek için main metodumda consola yazdırıyorum.
+
+[source,groovy]
+----
+println(response)
+----
+
+Main metodumu çalıştırdıktan sonra aşağıdaki gibi bir çıktının console’a çıktığını görüyorum.
+
+[source]
+----
+> Task :ResponseTransformation.main()
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://jsonplaceholder.com/wsdl/">
+  <soapenv:Body>
+    <wsdl:updatePostResponse>
+       <userId>1</userId>
+       <id>1</id>
+       <title>foo</title>
+       <body>bar</body>
+    </wsdl:updatePostResponse>
+  </soapenv:Body>
+</soapenv:Envelope>
+----
+
+Sınıfımızın geliştirme sonucundaki tam hali aşağıda bulunuyor.
+
+[source,groovy]
+----
+import groovy.json.JsonSlurper
+
+class ResponseTransformation {
+    static void main(String[] args) {
+        String responseJson = "{\"id\": 1, \"title\": \"foo\", \"body\": \"bar\", \"userId\": 1}"
+
+        JsonSlurper jsonSlurper = new JsonSlurper()
+        Map<String, Object> responseMap = jsonSlurper.parseText(responseJson) as Map<String, Object>
+
+        String response = generateSoapResponse(responseMap)
+        println(response)
+    }
+
+    static String generateSoapResponse(Map<String, Object> map) {
+        return "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:wsdl=\"http://jsonplaceholder.com/wsdl/\">\n" +
+                "  <soapenv:Body>\n" +
+                "    <wsdl:updatePostResponse>\n" +
+                "       <userId>${map.get("userId")}</userId>\n" +
+                "       <id>${map.get("id")}</id>\n" +
+                "       <title>${map.get("title")}</title>\n" +
+                "       <body>${map.get("body")}</body>\n" +
+                "    </wsdl:updatePostResponse>\n" +
+                "  </soapenv:Body>\n" +
+                "</soapenv:Envelope>"
+    }
+}
+----
+
+Bu sınıfta yaptığımız transform’u api üzerine taşıyalım.
+
+[source,groovy]
+----
+package com.mirket.gateway.groovy;
+
+import groovy.json.JsonSlurper
+import java.nio.charset.StandardCharsets
+
+public class GroovyTransformationScriptImpl implements GroovyTransformationScript {
+    public byte[] transform(byte[] input) {
+        def inputString = new String(input, StandardCharsets.UTF_8)
+        JsonSlurper jsonSlurper = new JsonSlurper()
+        Map<String, Object> responseMap = jsonSlurper.parseText(inputString) as Map<String, Object>
+
+        String response = generateSoapResponse(responseMap)
+		return response.getBytes(StandardCharsets.UTF_8)
+    }
+
+    static String generateSoapResponse(Map<String, Object> map) {
+        return "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:wsdl=\"http://jsonplaceholder.com/wsdl/\">\n" +
+                "  <soapenv:Body>\n" +
+                "    <wsdl:updatePostResponse>\n" +
+                "       <userId>${map.get("userId")}</userId>\n" +
+                "       <id>${map.get("id")}</id>\n" +
+                "       <title>${map.get("title")}</title>\n" +
+                "       <body>${map.get("body")}</body>\n" +
+                "    </wsdl:updatePostResponse>\n" +
+                "  </soapenv:Body>\n" +
+                "</soapenv:Envelope>"
+    }
+}
+----
+
+IDE’de geliştirme kolaylığı olması açısından tanımladığımız `responseJson` ve console’a çıktı yazdırmak için kullandığımız `println(response)` metodunu kaldırıp response objemizi byte olarak dönüyoruz.
+
+___
+
+*API İsteği Başlıkları* tabında aşağıdaki gibi bir istek başlığı tanımlanır.
+
+====
+*İstek Başlığı İsmi:* Content-Type
+
+*İstekte Gelen Başlığın Üzerine Yaz:* İşaretli
+
+*Değer Kaynağı:* Sabit
+
+*Sabit Değer*: application/json
+====
+
+*Kaydet* butonuna tıklayarak apimi kaydediyorum.
+
+
+=== Test
+
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+
+*İstek* bölümünde *Gövde* tabına tıklanır. Aşağıdaki gibi bir istek gövdesi eklenir.
+
+[source,xml]
+----
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://jsonplaceholder.com/wsdl/">
+  <soapenv:Body>
+    <wsdl:updatePostRequest>
+      <userId>1</userId>
+      <id>2</id>
+      <title>qui est esse</title>
+      <body>est rerum tem</body>
+    </wsdl:updatePostRequest>
+  </soapenv:Body>
+</soapenv:Envelope>
+----
+
+Çalıştır'a tıklanır.
+
+Örnek cevap:
+
+[source,xml]
+----
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://jsonplaceholder.com/wsdl/">
+  <soapenv:Body>
+    <wsdl:updatePostResponse>
+       <userId>1</userId>
+       <id>2</id>
+       <title>qui est esse</title>
+       <body>est rerum tem</body>
+    </wsdl:updatePostResponse>
+  </soapenv:Body>
+</soapenv:Envelope>
+----

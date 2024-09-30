@@ -1,0 +1,5 @@
+# IntelliJ Idea
+.idea/
+
+# MacOS
+.DS_Store

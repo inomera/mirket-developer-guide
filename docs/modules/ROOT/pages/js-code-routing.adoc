@@ -1,0 +1,807 @@
+= JavaScript Kod Routing
+
+== External REST API
+
+=== API Oluşturma
+
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Get Post Title By Id - JSONPlaceholder | JS Routing
+
+*Açıklama:* Apache Http Client ile https://jsonplaceholder.typicode.com/posts adresine istek atar. Dönen JSON dizisi içerisinde id değeri URL’den parse edilerek bulunan id değeri ile aynı olan elemanın title değerini json olarak döner.
+
+*Durum:* Aktif
+
+*Tip:* REST
+
+*EndPoint:* `/js/posts/{id}/title`
+
+*Metot:* GET
+====
+
+.API Oluşturma
+image::js-routing-external-rest-api/js-routing-external-api-definition.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *JavaScript Kodu Çalıştırılması* seçilir.
+
+Bu adımda karşımıza çıkan örnek bir javascript kodu editörde gözükecek.
+
+Örnek kodda bulunan `execute` metodunun içeriğini, apimiz tetiklendiğinde JSONPlaceholder'dan path değişkeni olarak gönderdiğimiz id değerine sahip gönderiyi çekip başlık değerini api cevabı olarak dönecek şekilde adım adım yazmaya çalışalım.
+
+Http isteğimizi yapabilmek için Apache HttpClient'ımızı tanımlayalım.
+
+[source,js]
+----
+var httpClient = HttpClients.createDefault();
+----
+
+Gideceğimiz JSONPlaceholder servis url'ini ve HttpGet objemizi tanımlayalım. Tanımladığımız HttpGet objemizin header'ına `Content-Type: application/json; charset=utf-8` header'ımızı ekleyelim.
+
+[source,js]
+----
+var serviceUrl = "https://jsonplaceholder.typicode.com/posts";
+var httpGet = new HttpGet(serviceUrl);
+httpGet.addHeader("Content-Type", "application/json; charset=utf-8");
+----
+
+HttpGet objemizi HttpClient'ın `execute` metoduna geçerek isteğimizi yapalım.
+
+[source,js]
+----
+var httpResponse = httpClient.execute(httpGet);
+----
+
+Response objemizden body'imizi alalım.
+
+[source,js]
+----
+var entity = httpResponse.getEntity();
+var responseAsString = IOUtils.toString(entity.getContent());
+const responseAsJson = JSON.parse(responseAsString);
+----
+
+Path Variable'ımızda tanımlı id değerimizi okuyabilmek için bir metot yazalım.
+
+[source,js]
+----
+function readPathVariable(request) {
+    return new UriTemplate("/posts/{id}/title")
+        .match(request.getRequestURI())
+        .get("id");
+}
+----
+
+Yazığımız `readPathVariable` metodunu `execute` metodumuz içerisinde çağırıp id değerimizi alalım.
+
+[source,js]
+----
+const id = readPathVariable(request);
+----
+
+`responseAsJson` objemizi filtreleyerek path variable olarak gelen id değerimiz ile eşleşen kaydı alılım.
+
+[source,js]
+----
+const posts = responseAsJson.filter(function (element) {
+    return element.id == id;
+});
+----
+
+`posts` değişkenimizde bir değer var ise başarılı response sonucumuzu oluşturabiliriz.
+
+[source,js]
+----
+if (posts.length > 0) {
+    posts[0].status = 'OK';
+    context.statusCode = 200;
+    context.responseBody = JSON.stringify(posts[0]);
+}
+----
+
+`posts` değişkenimizde bir değer yok ise hata response'umuzu oluşturmak için bir metot yazalım.
+
+[source,js]
+----
+function getErrorResponse(status, id) {
+    return `{ "status": "${status}", "id": "${id}" }`;
+}
+----
+
+Yazdığımız `getErrorResponse` metodumuzu başarılı response'umuzu oluşturan if clause'un else'inde çağırarak hata response'umuzuda oluşturalım.
+
+[source,js]
+----
+if (posts.length > 0) {
+    posts[0].status = 'OK';
+    context.statusCode = 200;
+    context.responseBody = JSON.stringify(posts[0]);
+} else {
+    context.statusCode = 400;
+    context.responseBody = getErrorResponse('POST_NOT_FOUND', id);
+}
+----
+
+Context response header'ına `Content-Type: application/json` set ettikten sonra geliştirmemizi tamamlıyoruz. Geliştirme sonucunda aşağıdaki gibi bir javascript kodumuz elimizde oluyor.
+
+[source,js]
+----
+function execute(request, context) {
+    var httpClient = HttpClients.createDefault();
+    var serviceUrl = "https://jsonplaceholder.typicode.com/posts";
+    var httpGet = new HttpGet(serviceUrl);
+    httpGet.addHeader("Content-Type", "application/json; charset=utf-8");
+
+    var httpResponse = httpClient.execute(httpGet);
+
+    var entity = httpResponse.getEntity();
+    var responseAsString = IOUtils.toString(entity.getContent());
+    const responseAsJson = JSON.parse(responseAsString);
+    const id = readPathVariable(request);
+    const posts = responseAsJson.filter(function (element) {
+        return element.id == id;
+    });
+
+    if (posts.length > 0) {
+        delete posts[0].userId;
+        delete posts[0].body;
+        posts[0].status = 'OK';
+        context.statusCode = 200;
+        context.responseBody = JSON.stringify(posts[0]);
+    } else {
+        context.statusCode = 400;
+        context.responseBody = getErrorResponse('POST_NOT_FOUND', id);
+    }
+    context.responseHeaders = {"content-type": "application/json"};
+}
+
+function readPathVariable(request) {
+    return new UriTemplate("/posts/{id}/title")
+        .match(request.getRequestURI())
+        .get("id");
+}
+
+function getErrorResponse(status, id) {
+    return `{ "status": "${status}", "id": "${id}" }`;
+}
+----
+
+Geliştirdiğimiz JavaScript kodumuzu api'nin yönlendirme sekmesinde bulunan JavaScript Kodu Çalıştırılması tabının editörüne yapıştırıyoruz.
+
+.Yönlendirme
+image::js-routing-external-rest-api/js-routing-external-api-routing.png[Yönlendirme]
+
+*Kaydet* butonuna tıklayarak apimi kaydediyorum.
+
+=== Test
+
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+
+Path Parametrelerinde id değerine 1-100 arasında bir değer girilir. (JSONPlaceHolder'da 100 tane gönderi kaydı bulunduğu için.)
+
+Çalıştır'a tıklanır.
+
+Örnek cevap:
+
+[source,json]
+----
+{
+  "userId": 1,
+  "id": 1,
+  "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
+  "body": "quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto",
+  "status": "OK"
+}
+----
+
+== External SOAP API
+
+DataAccess'in Number Conversion Public SOAP servisini kullanacak bir api tanımlayalım.
+
+=== API Oluşturma
+
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Number To Dollars | Number Conversion Service | SOAP | JS Routing
+
+*Açıklama:* DataAccess'in Number Conversion Public SOAP servislerinden biri olan
+NumberToDollars servisine JavaScript kodu çalıştırarak SOAP isteği yapan REST Mirket apisi.
+
+*Durum:* Aktif
+
+*Tip:* REST
+
+*EndPoint:* `/js/dollars/{num}/text`
+
+*Metot:* GET
+====
+
+.API Oluşturma
+image::js-routing-external-soap-api/js-routing-external-soap-api-definition.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *JavaScript Kodu Çalıştırılması* seçilir.
+
+Bu adımda karşımıza çıkan örnek bir javascript kodu editörde gözükecek.
+
+Örnek kodda bulunan `execute` metodunun içeriğini, apimiz tetiklendiğinde path'de gelen `num` değeri ile NumberToDollars servisini çağıran ve gelen sonucu json bir api cevabı olarak dönecek şekilde JavaScript kodunu adım adım yazmaya çalışalım.
+
+`execute` metodumuzda Context'e set edeceğimiz işlemleri yapalım. Burada response body'i bize dönecek olan `doExecute` adında request'i parametre olarak alan bir metodumuz olduğunu varsayalım. Yazının devamında adım adım bu metodu geliştireceğiz.
+
+[source,js]
+----
+context.statusCode = 200;
+context.responseBody = doExecute(request);
+context.responseHeaders = {"content-type": "application/json"};
+----
+
+`doExecute` adında ana işi yapan metodumuzu tanımlayalım.
+
+[source,js]
+----
+function doExecute(request) {
+
+}
+----
+
+Path Variable'ımızda gelen sayı değerini okuyacak metodumuzu yazalım.
+
+[source,js]
+----
+function readDollarNumber(request) {
+    return new UriTemplate("/js/dollars/{num}/text")
+    .match(request.getRequestURI())
+    .get("num");
+}
+----
+
+`doExecute` metodu içerisinde `readDollarNumber` metodunu çağırarak path variable'ımızdaki sayı değerini okuyalım.
+
+[source,js]
+----
+function doExecute(request) {
+    const dollarNumber = readDollarNumber(request);
+}
+----
+
+Request'te gelen `readDollarNumber` metodu ile okuduğumuz `dollarNumber` değerinin sayı olduğunu doğrulamak için bir validasyon metodu yazalım. Bunun için öncelikle `NumberUtils` adında bir util'i `Ortak Kodlar` 'a tanımlayıp daha sonra apimiz içerindeki validate metodumuzda kullanabiliriz.
+
+==== NumberUtils Ortak Kodu Oluşturma
+
+Yeni bir sekmede `Katalog -> Katalog Ayarları -> Ortak Kodlar` sayfasına gidilir.
+Sayfanın sağ altında bulunan `Yeni Kod Ekle` butonu ile `Yeni Ortak Kod Oluştur` sayfasına gidilir. Aşağıdaki gibi tanımlamalar yapılır.
+
+====
+
+*Ad*: NumberUtils
+
+*Dil*: JavaScript
+
+*Bean İsmi*: numberUtils
+
+*Tip*: Genel
+
+*Kaynak Kod*:
+
+[source,js]
+----
+const NumberUtils = {
+    isNumeric: function(str) {
+        if (typeof str != "string") {
+            return false;
+        }
+        return !isNaN(str) && !isNaN(parseFloat(str));
+    }
+}
+----
+
+====
+
+`NumberUtils` ortak kodu oluşturulduktan sonra apide kaldığımız yerden devam edebiliriz.
+
+`NumberUtils` ortak kodunu kullanacağımız `validateRequest` adında `dollarNumber` string değerini alan bir validate metodu yazalım.
+
+[source,js]
+----
+function validateRequest(dollarNumber) {
+    if (!NumberUtils.isNumeric(dollarNumber)) {
+        throw `num is not number: ${dollarNumber}`;
+    }
+}
+----
+
+Artık `doExecute` metodumuz içerinde `validateRequest` metodumuzu çağırarak request ile gelen değerin sayı olduğunu doğrulayabiliriz.
+
+[source,js]
+----
+validateRequest(dollarNumber);
+----
+
+Http isteğimizi yapabilmek için Apache HttpClient'ımızı tanımlayalım.
+
+[source,js]
+----
+var httpClient = HttpClients.createDefault();
+----
+
+Gideceğimiz SOAP serviste alacağımız her hangi bir hatayı handle edebilmek için isteğimizi `try-catch-finally` blokları arasında yapalım.
+
+`finally` bloğunda da kullanabilmek için `httpResponse` ve `entity` objelerimizi `null` olarak `try` bloğundan önce tanımlayalım.
+
+[source,js]
+----
+let httpResponse = null;
+let entity = null;
+----
+
+`try-catch-finally` bloklarımızı açalım.
+
+[source,js]
+----
+try {
+
+} catch (e) {
+
+} finally {
+
+}
+----
+
+`try` bloğumuz içerisinde, gideceğimzi SOAP servis url'ini tanımlayalım.
+Tanımladığımız bu `servisUrl` 'ini parametre geçerek `HttpPost` objemizi oluşturalım.
+HttpPost objemize `Content-Type: text/xml; charset=utf-8` header'ımızı ekleyelim.
+
+[source,js]
+----
+try {
+    const serviceURL = "https://www.dataaccess.com/webservicesserver/NumberConversion.wso";
+    const httpPost = new HttpPost(serviceURL);
+    httpPost.addHeader("Content-Type", "text/xml; charset=utf-8");
+} catch (e) {
+
+} finally {
+
+}
+----
+
+SOAP request body'imizi tanımlayalım. Tanımladığımız bu `requestBody` 'imizi mime type ve charset bilgileri ile beraber  `StringEntity` objesini oluşturup `httpPost` üzerine set edelim.
+
+[source,js]
+----
+const requestBody = `<?xml version="1.0" encoding="utf-8"?>
+            <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+              <soap:Body>
+                <NumberToDollars xmlns="http://www.dataaccess.com/webservicesserver/">
+                  <dNum>${dollarNumber}</dNum>
+                </NumberToDollars>
+              </soap:Body>
+            </soap:Envelope>`;
+httpPost.setEntity(new StringEntity(requestBody, "text/xml", "utf-8"));
+----
+
+HttpPost objemizi HttpClient'ın `execute` metoduna geçerek isteğimizi yapalım. `httpResponse` üstündeki entity'i entity objemize atayalım.
+
+[source,js]
+----
+httpResponse = httpClient.execute(httpPost);
+entity = httpResponse.getEntity();
+----
+
+Gelen response değerimizi işlemek için `processResponse` adında bir metot yazalım. Response body'i okuyup `responseAsString` değişkenine atayalım. `responseAsString` string response'umuz üzerinde bulunan `<m:NumberToDollarsResult></m:NumberToDollarsResult>` tagları arasındaki değeri alabilmek için bir pattern tanımlayalım. Bu pattern ile eşleşen kaydı dönecek şekilde `parseNumberToDollarsResult` adında bir metoda çıkaralım. `parseNumberToDollarsResult` metodunu `processResponse` metodumuzda çağırarak `result` değerimizi alalım. `result` değerimizi json olarak dönelim.
+
+[source,js]
+----
+function processResponse(entity) {
+    const responseAsString = IOUtils.toString(entity.getContent());
+    const result = parseNumberToDollarsResult(responseAsString);
+    return `{ "result": "${result}" }`;
+}
+
+function parseNumberToDollarsResult(response) {
+    const matcher = Pattern.compile("<m:NumberToDollarsResult>(.*?)</m:NumberToDollarsResult>")
+    .matcher(response);
+    return matcher.find() ? matcher.group(1) : "";
+}
+----
+
+`processResponse` metodumuzu `doExecute` metodumuzdaki `try` bloğu içinde çağırarak return edelim.
+
+[source,js]
+----
+return processResponse(entity);
+----
+
+`catch` bloğunda yakaladığımız exception'ı hata dönüşümünde kullanmak üzere tekrar throw edelim.
+
+[source,js]
+----
+try {
+    ...
+} catch (e) {
+    throw e;
+}
+----
+
+`finally` bloğunda `httpClient` ve `httpResponse` objelerimizi close edelim.
+
+[source,js]
+----
+try {
+    ...
+} catch (e) {
+    throw e;
+} finally {
+    EntityUtils.consumeQuietly(entity);
+    IOUtils.closeQuietly(httpResponse);
+    httpClient.close();
+}
+----
+
+Geliştirme sonucunda aşağıdaki gibi bir javascript kodumuz elimizde oluyor.
+
+[source,js]
+----
+function execute(request, context) {
+    context.statusCode = 200;
+    context.responseBody = doExecute(request);
+    context.responseHeaders = {"content-type": "application/json"};
+}
+
+function doExecute(request) {
+    const dollarNumber = readDollarNumber(request);
+    validateRequest(dollarNumber);
+
+    const httpClient = HttpClients.createDefault();
+    let httpResponse = null;
+    let entity = null;
+    try {
+        const serviceURL = "https://www.dataaccess.com/webservicesserver/NumberConversion.wso";
+        const httpPost = new HttpPost(serviceURL);
+        httpPost.addHeader("Content-Type", "text/xml; charset=utf-8");
+        const requestBody = `<?xml version="1.0" encoding="utf-8"?>
+            <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+              <soap:Body>
+                <NumberToDollars xmlns="http://www.dataaccess.com/webservicesserver/">
+                  <dNum>${dollarNumber}</dNum>
+                </NumberToDollars>
+              </soap:Body>
+            </soap:Envelope>`;
+
+        httpPost.setEntity(new StringEntity(requestBody, "text/xml", "utf-8"));
+        httpResponse = httpClient.execute(httpPost);
+        entity = httpResponse.getEntity();
+
+        return processResponse(entity);
+    } catch (e) {
+        throw e;
+    } finally {
+        EntityUtils.consumeQuietly(entity);
+        IOUtils.closeQuietly(httpResponse);
+        httpClient.close();
+    }
+}
+
+function readDollarNumber(request) {
+    return new UriTemplate("/dollars/{num}/text")
+    .match(request.getRequestURI())
+    .get("num");
+}
+
+function processResponse(entity) {
+    const responseAsString = IOUtils.toString(entity.getContent());
+    const result = parseNumberToDollarsResult(responseAsString);
+    return `{ "result": "${result}" }`;
+}
+
+function parseNumberToDollarsResult(response) {
+    const matcher = Pattern.compile("<m:NumberToDollarsResult>(.*?)</m:NumberToDollarsResult>")
+    .matcher(response);
+    return matcher.find() ? matcher.group(1) : "";
+}
+
+function validateRequest(dollarNumber) {
+    if (!NumberUtils.isNumeric(dollarNumber)) {
+        throw `num is not number: ${dollarNumber}`;
+    }
+}
+----
+
+Geliştirdiğimiz JavaScript kodumuzu api'nin yönlendirme sekmesinde bulunan JavaScript Kodu Çalıştırılması tabının editörüne yapıştırıyoruz.
+
+.Yönlendirme
+image::js-routing-external-soap-api/js-routing-external-soap-api-routing.png[Yönlendirme]
+
+*Dönüştürme* sekmesine tıklanır *Hata Dönüşümü* tabında *JavaScript* seçilir. Aşağıdaki hata dönüşümü yapılır. JavaScript kodu içerisindeki `catch` bloğunda yakalayıp throw ettiğimiz hatayı, error response olarak dönüyoruz.
+
+[source,js]
+----
+function transform(exception) {
+    const rootCause = ExceptionUtils.getRootCause(exception);
+    return `{\"error\": \"${rootCause.getMessage()}\"}`;
+}
+----
+
+*Kaydet* butonuna tıklayarak apimi kaydediyorum.
+
+
+=== Test
+
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+
+==== _Case 1_
+
+Path Parametrelerinde num değerine 0'dan farklı pozitif bir sayı girilir.
+Çalıştır'a tıklanır.
+
+Girdiğimiz num değerinin ingilizce olarak okunuşunu cevap olarak aldığımızı görmüş olduk.
+
+Örnek cevap:
+
+[source,json]
+----
+{
+  "result": "ten dollars"
+}
+----
+
+==== _Case 2_
+
+Path Parametrelerinde num değerine sayı haricinde bir değer girilir.
+Çalıştır'a tıklanır.
+
+Hata dönüşümü yapılıpi JavaScript kodumuz içinde yaptığımız validasyonun response'unu görürüz.
+
+Örnek cevap:
+
+[source,json]
+----
+{
+  "error": "num is not number: test"
+}
+----
+
+== Database Access - MongoDB
+
+MongoDB veri kaynağından, JavaScript kodu çalıştırarak id bazlı müşteri bilgisi çeken api tanımlayalım.
+
+=== API Oluşturma
+
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Get Customer By Id | MongoDB | JS Routing
+
+*Açıklama:* MongoDB veri kaynağından, JavaScript kodu çalıştırarak id bazlı müşteri bilgisi çeken api.
+
+*Durum:* Aktif
+
+*Tip:* REST
+
+*EndPoint:* `/js/customers/{id}`
+
+*Metot:* GET
+====
+
+.API Oluşturma
+image::js-db-access-api/js-db-access-api-definition.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *JavaScript Kodu Çalıştırılması* seçilir.
+
+Bu adımda karşımıza çıkan örnek bir javascript kodu editörde gözükecek.
+
+Örnek kodda bulunan `execute` metodunun içeriğini, apimiz tetiklendiğinde tanımlı veri kaynağına path'de gelen `id` değeri ile sorgu atan bir JavaScript kodunu adım adım yazmaya çalışalım.
+
+
+`execute` metodumuzda Context'e set edeceğimiz işlemleri yapalım. Burada response body'i bize dönecek olan `doExecute` adında request'i parametre olarak alan bir metodumuz olduğunu varsayalım. Yazının devamında adım adım bu metodu geliştireceğiz.
+
+[source,js]
+----
+context.statusCode = 200;
+context.responseBody = doExecute(request);
+context.responseHeaders = {"content-type": "application/json"};
+----
+
+`doExecute` adında ana işi yapan metodumuzu tanımlayalım.
+
+[source,js]
+----
+function doExecute(request) {
+
+}
+----
+
+Path Variable'ımızda gelen id değerini okuyacak metodumuzu yazalım.
+
+[source,js]
+----
+function readId(request) {
+    return new UriTemplate("/js/customers/{id}")
+    .match(request.getRequestURI())
+    .get("id");
+}
+----
+
+`doExecute` metodu içerisinde `readId` metodunu çağırarak path variable'ımızdaki id değerini okuyalım.
+
+[source,js]
+----
+function doExecute(request) {
+    const id = readId(request);
+}
+----
+
+Request'te gelen `readId` metodu ile okuduğumuz `id` değerinin sayı olduğunu doğrulamak için bir validasyon metodu yazalım. Bunun için daha önce  <<_numberutils_ortak_kodu_oluşturma>> başlığında oluşturduğumuz `NumberUtils` 'i validate metodumuzda kullanabiliriz.
+
+`NumberUtils` ortak kodunu kullanacağımız `validateRequest` adında `id` string değerini alan bir validate metodu yazalım.
+
+[source,js]
+----
+function validateRequest(id) {
+    if (!NumberUtils.isNumeric(id)) {
+        throw `Id is not number: ${id}`;
+    }
+}
+----
+
+Artık `doExecute` metodumuz içerinde `validateRequest` metodumuzu çağırarak request ile gelen değerin sayı olduğunu doğrulayabiliriz.
+
+[source,js]
+----
+validateRequest(id);
+----
+
+Veri kaynağından alacağımız her hangi bir hatayı handle edebilmek için sorgumuzu `try-catch` blokları arasında yapalım.
+
+Veri kaynağından id bazlı sorgu atıp sonucu bize dönecek JavaScript kodunu <<_numberutils_ortak_kodu_oluşturma>> başlığındaki örnekteki gibi Ortak Kodlara ekleyebiliriz.
+
+
+==== ID Bazlı Müşteri Bulma Ortak Kodu Oluşturma
+
+Sayfanın sağ altında bulunan `Yeni Kod Ekle` butonu ile `Yeni Ortak Kod Oluştur` sayfasına gidilir. Aşağıdaki gibi tanımlamalar yapılır.
+
+====
+
+*Ad*: ID Bazlı Müşteri Bulma - MongoDB
+
+*Dil*: JavaScript
+
+*Bean İsmi*: findCustomerById
+
+*Tip*: Genel
+
+*Kaynak Kod*:
+
+[source,js]
+----
+function findCustomerById(id) {
+    try {
+       var customerDocument = getCollection().find(Filters.eq("_id", new ObjectId(id))).first();
+       return convertToCustomer(customerDocument);
+    } catch(e) {
+      throw e;
+    }
+}
+
+function getCollection() {
+    const mongoDatabase = dataSourceFactory.getOrCreteMongoDatabase("<MONGO-DB-ALIAS>", "<DB-NAME>");
+    return mongoDatabase.getCollection("customers");
+}
+
+function convertToCustomer(customerDocument) {
+    var customer = {};
+    customer.id = customerDocument.get('_id');
+    customer.name = customerDocument.get('name');
+    customer.surname = customerDocument.get('surname');
+    customer.email = customerDocument.get('email');
+    return customer;
+}
+----
+
+====
+
+`try-catch` bloklarımızı açalım. `try` bloğumuz içerisinden <<_id_bazlı_müşteri_bulma_ortak_kodu_oluşturma>> bölümünde tanımladığımız `findCustomerById` metodunu çağıralım. Gelen `customer` objesini `JSON.stringify` ile return edelim. `catch` bloğunda yakaladığımız exception'ı hata dönüşümünde kullanmak için tekrar throw edelim.
+
+[source,js]
+----
+try {
+    const customer = findCustomerByIdMongoTest(id);
+    return JSON.stringify(customer);
+} catch (e) {
+    throw e;
+}
+----
+
+Geliştirme sonucunda aşağıdaki gibi bir javascript kodumuz elimizde oluyor.
+
+[source,js]
+----
+function execute(request, context) {
+    context.statusCode = 200;
+    context.responseBody = doExecute(request);
+    context.responseHeaders = {"content-type": "application/json"};
+}
+
+function doExecute(request) {
+    const id = readId(request);
+    validateRequest(id);
+    try {
+		const customer = findCustomerById(id);
+        return JSON.stringify(customer);
+    } catch (e) {
+		throw e;
+    }
+}
+
+function readId(request) {
+    return new UriTemplate("/js/customers/{id}")
+    .match(request.getRequestURI())
+    .get("id");
+}
+
+function validateRequest(id) {
+    if (!NumberUtils.isNumeric(id)) {
+        throw `Id is not number: ${id}`;
+    }
+}
+----
+
+Geliştirdiğimiz JavaScript kodumuzu api'nin yönlendirme sekmesinde bulunan JavaScript Kodu Çalıştırılması tabının editörüne yapıştırıyoruz.
+
+.Yönlendirme
+image::js-db-access-api/js-db-access-api-routing.png[Yönlendirme]
+
+*Dönüştürme* sekmesine tıklanır *Hata Dönüşümü* tabında *JavaScript* seçilir. Aşağıdaki hata dönüşümü yapılır. JavaScript kodu içerisindeki `catch` bloğunda yakalayıp throw ettiğimiz hatayı, error response olarak dönüyoruz.
+
+[source,js]
+----
+function transform(exception) {
+    const rootCause = ExceptionUtils.getRootCause(exception);
+    return `{\"error\": \"${rootCause.getMessage()}\"}`;
+}
+----
+
+.Hata Dönüşümü
+image::js-db-access-api/js-db-access-api-error-transformation.png[Hata Dönüşümü]
+
+*Kaydet* butonuna tıklayarak apimi kaydediyorum.
+
+=== Test
+
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+
+_Case 1_
+
+Path Parametrelerinde id değerine veri kaynağında kayıtlı bir müşterinin id'sini girelim.
+Çalıştır'a tıklanır.
+
+Girdiğimiz id değere sahip müşterinin bilgileri cevap olarak döner.
+
+Örnek cevap:
+
+[source,json]
+----
+{
+  "id": "1",
+  "name": "Russell",
+  "surname": "K. Dailey",
+  "email": "RussellKDailey@rhyta.com"
+}
+----
+
+_Case 2_
+
+Path Parametrelerinde id değerine sayı haricinde bir değer girilir.
+Çalıştır'a tıklanır.
+
+Hata dönüşümü yapılıp JavaScript kodumuz içinde yaptığımız validasyonun response'unu görürüz.
+
+Örnek cevap:
+
+[source,json]
+----
+{
+  "error": "Id is not number: test"
+}
+----
+
+___

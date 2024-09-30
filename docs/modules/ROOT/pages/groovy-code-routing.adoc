@@ -1,0 +1,889 @@
+= Groovy Kod Routing
+
+== External REST API
+
+Basit bir API tanımı yaparken JSONPlaceholder'dan tüm gönderilerin kaydını çekmiştik.
+Şimdi de id bazlı gönderinin başlık değerini dönen bir api tanımlayalım.
+Bunun için API'nin Yönlendirme tabında bulunan Groovy Kod Çalıştırılması özelliğini kullanalım.
+
+=== API Oluşturma
+
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Get Post Title By Id - JSONPlaceholder
+
+*Açıklama:* Get Post Title By Id - JSONPlaceholder
+
+*Durum:* Aktif
+
+*Tip:* REST
+
+*EndPoint:* `/groovy/posts/{id}/title`
+
+*Metot:* GET
+====
+
+.API Oluşturma
+image::groovy-external-rest-api/groovy-code-external-rest-api-definition.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *Groovy Kodu Çalıştırılması* seçilir.
+
+Bu adımda karşımıza çıkan örnek bir groovy kodu editörde gözükecek.
+
+[source,groovy]
+----
+package com.mirket.gateway.groovy;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
+public class GroovyRouteScriptImpl implements GroovyRouteScript {
+  public void execute(HttpServletRequest request, RoutingContext context) {
+    Map<String, String> responseHeaders = new HashMap<>();
+    String responseBody = "{\"status\": \"OK\"}";
+    int statusCode = 200;
+    context.setStatusCode(statusCode);
+    context.setResponseBody(responseBody);
+    context.setResponseHeaders(responseHeaders);
+  }
+}
+----
+
+Örnek kodda bulunan `execute` metodunun içeriğini, apimiz tetiklendiğinde JSONPlaceholder'dan path değişkeni olarak gönderdiğimiz id değerine sahip gönderiyi çekip başlık değerini api cevabı olarak dönecek şekilde adım adım yazmaya çalışalım.
+
+Daha rahat yazabilmek adına groovy destekleyen bir ide'den yazmayı tercih edebilirsiniz. Ben Intellij IDEA'yı tercih ediyorum.
+
+IDE'de bir groovy projesi açıyorum. Hemen ardından `JSONPlaceHolderGetPostTitleById` adında bir groovy'i sınıfı oluşturuyorum.
+
+Hızlıca `main` metodumuda oluşturduktan sonra sınıfım aşağıdaki şekilde oluşmuş oluyor.
+
+[source,groovy]
+----
+class JSONPlaceHolderGetPostTitleById {
+
+    static void main(String[] args) {
+
+    }
+}
+----
+
+Kod içinde loglama yapabilmek için static Logger'ımı sınıf içerisinde tanımlıyorum.
+
+[source,groovy]
+----
+private static final Logger LOG = LoggerFactory.getLogger('GroovyLogger')
+----
+
+HttpClient'ı oluşturup JSONPlaceHolder'a gideceğimiz URL'i parametre olarak vererek HttpGet objemizi oluşturuyorum.
+HttpResponse ve StringBuilder objelerimide tanımlayıp null set ediyorum.
+
+Tanımlamalar sonrası sınıfımın son hali şu şekilde olmuş oluyor.
+
+[source,groovy]
+----
+import com.sun.org.slf4j.internal.LoggerFactory
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.HttpClients
+
+import java.net.http.HttpClient
+import java.net.http.HttpResponse
+import java.util.logging.Logger
+
+class JSONPlaceHolderGetPostTitleById {
+    private static final Logger LOG = LoggerFactory.getLogger('GroovyLogger')
+
+    static void main(String[] args) {
+        HttpClient httpclient = HttpClients.createDefault() as HttpClient;
+        HttpGet httpget = new HttpGet("https://jsonplaceholder.typicode.com/posts");
+        HttpResponse response = null
+        StringBuilder result = null
+    }
+}
+----
+
+Http client'ı kullanarak isteğimizi yaptıktan sonra aldığımız cevap değeri üzerinden bir `InputStream` okuması yapacağımız için okuma esnasında alabileceğimiz her türlü `IOException`'ı handle edebilmek adına bir try-catch bloğu açıyorum.
+
+[source,groovy]
+----
+    try {
+
+    } catch (IOException e) {
+
+    }
+----
+
+Try bloğunun içinde http isteğimi yapıp cevabını `response` objeme atıyorum.
+
+[source,groovy]
+----
+response = httpclient.execute(httpget);
+----
+
+Bu aşamada JSONPlaceHolder'da tanımlı tüm gönderi kayıtlarını çekmiş olduk.
+Bu adımda ResponseBody içindeki tüm bu kayıtları okuyup bir StringBuilder'a eklememiz gerekiyor.
+
+[source,groovy]
+----
+    InputStream ins = response.getEntity().getContent();
+    BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
+    result = new StringBuilder();
+    String line = new String();
+    while ((line = reader.readLine()) != null) {
+        result.append(line);
+    }
+----
+
+Bütün kayıtları okuyup `result` objemize ekledikten sonra apimize path parametresi ile gelen id değerini çözmemiz gerekiyor.
+Bunun içinde aşağıdaki gibi bir metod tanımını groovy sınıfım içinde yapıyorum.
+
+[source,groovy]
+----
+    private String readPathParameter(HttpServletRequest request) {
+        return new UriTemplate("/groovy/posts/{id}/title")
+        .match(request.getRequestURI())
+        .get("id");
+    }
+----
+
+Path parametremizi okuyan metodumuzuda tanımladıktan sonra artık ana metodumuzda metod çağrımı yapabiliriz.
+Request objemizi metoda parametre olarak geçerek id değerimizi alabiliriz.
+
+[source,groovy]
+----
+def id = readPathParameter(request);
+----
+
+Bu aşamada sınıfımın aldığı son hal aşağıdaki gibi olmuş oluyor.
+
+[source,groovy]
+----
+import com.sun.org.slf4j.internal.LoggerFactory
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.HttpClients
+
+import java.net.http.HttpClient
+import java.net.http.HttpResponse
+import java.util.logging.Logger
+
+class JSONPlaceHolderGetPostTitleById {
+    private static final Logger LOG = LoggerFactory.getLogger('GroovyLogger')
+
+    static void main(String[] args) {
+        HttpClient httpclient = HttpClients.createDefault() as HttpClient;
+        HttpGet httpget = new HttpGet("https://jsonplaceholder.typicode.com/posts");
+        HttpResponse response = null
+        StringBuilder result = null
+
+        try {
+            response = httpclient.execute(httpget);
+            InputStream ins = response.getEntity().getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
+            result = new StringBuilder();
+            String line = new String();
+            while ((line = reader.readLine()) != null) {
+                result.append(line);
+            }
+            def id = readPathParameter(request);
+
+        } catch (IOException e) {
+
+        }
+    }
+
+    private String readPathParameter(HttpServletRequest request) {
+        return new UriTemplate("/groovy/posts/{id}/title")
+                .match(request.getRequestURI())
+                .get("id");
+    }
+}
+----
+
+Bundan sonra `result` objemize doldurduğumuz gönderiler `JsonSlurper` yardımı ile ayrıştırıp, kendi response body'imiz oluşturup context'e set etmek kaldı.
+Öncelikle string bir response body tanımlıyorum.
+
+[source,groovy]
+----
+String responseBody = "{\"status\": \"POST_NOT_FOUND\", \"id\": \"" + id + "\"}"
+----
+
+Hemen ardından `JsonSlurper`'ı tanımlayıp `parseText` metoduna result objemi string olarak veriyorum. `JsonSlurper` bana tüm gönderileri değerlerini key-value bir map olarak ayrıştıracak.
+Birden fazla gönderi olduğu için ayrıştırma sonrasında elimde `List<Map<String, Object>>` bir değişken olmuş olacak.
+Bu gönderi listesi üstünde `forEach` yardımı ile dönüp, path parametresinden aldığım id değeri ile eşleşen gönderinin başlık değerini response olarak dönmek için aşağıdaki kodları yazıyorum.
+
+[source,groovy]
+----
+    JsonSlurper jsonSlurper = new JsonSlurper()
+    List<Map<String, Object>> json = jsonSlurper.parseText(result.toString()) as List<Map<String, Object>>
+    json.forEach(map -> {
+        def idAsString = String.valueOf(map.get("id"));
+        if (idAsString.equals(id)) {
+            responseBody = "{\"status\": \"OK\", \"id\": \"" + id + "\", \"title\": \"" + map.get("title") + "\"}"
+        }
+    })
+----
+
+Artık yavaş yavaş kodumu tamamlamış bulunmaktayım. Response body'imi `RoutingContext`'te bulunan `setResponseBody` metodu yardımı ile set ediyorum.
+Örnek kodda da bulunan statusCode tanımı yapıp, context'e set ediyorum. Son adım olarakta try-catch bloğumun catch bloğunda bir error logu yazarak kodumu tamamlamış bulunuyorum.
+Tüm bu adımlar sonrasında kodumun aldığı son hal aşağıdaki gibi olmuş oluyor.
+
+[source,groovy]
+----
+import com.sun.org.slf4j.internal.LoggerFactory
+import groovy.json.JsonSlurper
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.HttpClients
+
+import java.net.http.HttpClient
+import java.net.http.HttpResponse
+import java.util.logging.Logger
+
+class JSONPlaceHolderGetPostTitleById {
+    private static final Logger LOG = LoggerFactory.getLogger('GroovyLogger')
+
+    static void main(String[] args) {
+        HttpClient httpclient = HttpClients.createDefault() as HttpClient;
+        HttpGet httpget = new HttpGet("https://jsonplaceholder.typicode.com/posts");
+        HttpResponse response = null
+        StringBuilder result = null
+
+        try {
+            response = httpclient.execute(httpget);
+            InputStream ins = response.getEntity().getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
+            result = new StringBuilder();
+            String line = new String();
+            while ((line = reader.readLine()) != null) {
+                result.append(line);
+            }
+            def id = readPathParameter(request);
+
+            String responseBody = "{\"status\": \"POST_NOT_FOUND\", \"id\": \"" + id + "\"}"
+            JsonSlurper jsonSlurper = new JsonSlurper()
+            List<Map<String, Object>> json = jsonSlurper.parseText(result.toString()) as List<Map<String, Object>>
+            json.forEach(map -> {
+                def idAsString = String.valueOf(map.get("id"));
+                if (idAsString.equals(id)) {
+                    responseBody = "{\"status\": \"OK\", \"id\": \"" + id + "\", \"title\": \"" + map.get("title") + "\"}"
+                }
+            })
+            context.setResponseBody(responseBody);
+            int statusCode = 200;
+            context.setStatusCode(statusCode);
+        } catch (IOException e) {
+            LOG.error("Hata Oldu");
+        }
+    }
+
+    private String readPathParameter(HttpServletRequest request) {
+        return new UriTemplate("/groovy/posts/{id}/title")
+                .match(request.getRequestURI())
+                .get("id");
+    }
+}
+----
+
+IDE yardımı ile yazığım bu kodu apimin yönlendirme tabında bulunan editöre taşıyorum. Taşırken, IDE üzerinde yazdığım main metodumun içeriği execute metodu olacak şekilde taşıyorum.
+Taşıma sonucunda API tanımında bulunan kodum şu hali almış oluyor.
+
+[source,groovy]
+----
+package com.mirket.gateway.groovy;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import groovy.json.JsonSlurper
+import org.apache.http.HttpResponse
+import org.apache.http.client.HttpClient
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.HttpClients
+import org.springframework.web.util.UriTemplate
+import java.util.List
+import java.util.Map
+public class GroovyRouteScriptImpl implements GroovyRouteScript {
+    private static final Logger LOG = LoggerFactory.getLogger('GroovyLogger')
+
+    public void execute(HttpServletRequest request, RoutingContext context) {
+        HttpClient httpclient = HttpClients.createDefault() as HttpClient;
+        HttpGet httpget = new HttpGet("https://jsonplaceholder.typicode.com/posts");
+        HttpResponse response = null
+        StringBuilder result = null
+        try {
+            response = httpclient.execute(httpget);
+            InputStream ins = response.getEntity().getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
+            result = new StringBuilder();
+            String line = new String();
+            while ((line = reader.readLine()) != null) {
+                result.append(line);
+            }
+            def id = readPathParameter(request);
+
+            String responseBody = "{\"status\": \"POST_NOT_FOUND\", \"id\": \"" + id + "\"}"
+            JsonSlurper jsonSlurper = new JsonSlurper()
+            List<Map<String, Object>> json = jsonSlurper.parseText(result.toString()) as List<Map<String, Object>>
+            json.forEach(map -> {
+                def idAsString = String.valueOf(map.get("id"));
+                if (idAsString.equals(id)) {
+                    responseBody = "{\"status\": \"OK\", \"id\": \"" + id + "\", \"title\": \"" + map.get("title") + "\"}"
+                }
+            })
+            context.setResponseBody(responseBody);
+            int statusCode = 200;
+	        context.setStatusCode(statusCode);
+        } catch (IOException e) {
+            LOG.error("Hata Oldu");
+        }
+    }
+
+    private String readPathParameter(HttpServletRequest request) {
+        return new UriTemplate("/groovy/posts/{id}/title")
+        .match(request.getRequestURI())
+        .get("id");
+    }
+}
+----
+
+*Kaydet* butonuna tıklayarak apimi kaydediyorum.
+
+
+=== Test
+
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+Path Parametrelerinde id değerine 1-100 arasında bir değer girilir. (JSONPlaceHolder'da 100 tane gönderi kaydı bulunduğu için.)
+Çalıştır'a tıklanır.
+
+Girdiğimiz id değerine sahip olan gönderinin başlık değerini cevap olarak aldığımızı görmüş olduk.
+
+Örnek cevap:
+
+[source,json]
+----
+{
+  "status": "OK",
+  "id": "2",
+  "title": "qui est esse"
+}
+----
+
+.Test
+image::groovy-external-rest-api/groovy-code-external-rest-api-test.png[Test]
+
+== External SOAP API
+
+External REST API'de yaptığımız gibi DataAccess'in Numara Çevirme SOAP servisini kullanarak, girilen sayı değerinin
+sıfır olmayan dolar tutarını döndüren bir api tanımlayalım.
+
+=== API Oluşturma
+
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Number To Dollars - Number Conversion Service
+
+*Açıklama:* Number To Dollars - Number Conversion Service
+
+*Durum:* Aktif
+
+*Tip:* REST
+
+*EndPoint:* `/dollars/{num}/text`
+
+*Metot:* GET
+====
+
+*Yönlendirme* sekmesine tıklanır ve *Groovy Kodu Çalıştırılması* seçilir.
+
+
+IDE'de bir groovy projesi açıyorum. Hemen ardından `NumberToDollars` adında bir groovy'i sınıfı oluşturuyorum.
+
+Hızlıca `main` metodumuda oluşturduktan sonra sınıfım aşağıdaki şekilde oluşmuş oluyor.
+
+[source,groovy]
+----
+class NumberToDollars {
+
+    static void main(String[] args) {
+
+    }
+}
+----
+
+Kod içinde loglama yapabilmek için static Logger'ımı sınıf içerisinde tanımlıyorum.
+
+[source,groovy]
+----
+private static final Logger LOG = LoggerFactory.getLogger('GroovyLogger')
+----
+
+
+Path parametresi içinde gelen sayı değerini alabilmek için aşağıdaki metodu sınıf içine tanımlıyorum.
+
+[source,groovy]
+----
+    private String readPathParameter(HttpServletRequest request) {
+        return new UriTemplate("/dollars/{num}/text")
+                .match(request.getRequestURI())
+                .get("num");
+    }
+----
+
+Metodu tanımladıktan sonra ana metodumda metod çağırımı yaparak parametremi alabilirim.
+
+[source,groovy]
+----
+def numParam = readPathParameter(request)
+----
+
+Parametremi aldıktan sonra soap isteğimde kullanacağım soap body'imi tanımlıyorum.
+
+[source,groovy]
+----
+    String soapBody = "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+            "  <soap:Body>\n" +
+            "    <NumberToDollars xmlns=\"http://www.dataaccess.com/webservicesserver/\">\n" +
+            "      <dNum>${numParam}</dNum>\n" +
+            "    </NumberToDollars>\n" +
+            "  </soap:Body>\n" +
+            "</soap:Envelope>";
+----
+
+Soap body'imi tanımladıktan sonra, isteğimi yapabilmem için gerekli olan http tanımlamalarını yapıyorum.
+
+[source,groovy]
+----
+    HttpClient httpClient = HttpClients.createDefault() as HttpClient;
+    StringEntity stringEntity = new StringEntity(soapBody, "text/xml", "UTF-8")
+    HttpPost httpPost = new HttpPost("https://www.dataaccess.com/webservicesserver/NumberConversion.wso");
+    httpPost.setEntity(stringEntity);
+    HttpResponse response = null
+    StringBuilder result = null
+----
+
+Http client'ı kullanarak isteğimizi yaptıktan sonra aldığımız cevap değeri üzerinden bir `InputStream` okuması yapacağımız için okuma esnasında alabileceğimiz her türlü `IOException`'ı handle edebilmek adına bir try-catch bloğu açıyorum.
+
+[source,groovy]
+----
+    try {
+
+    } catch (IOException e) {
+
+    }
+----
+
+Try bloğunun içinde http isteğimi yapıp cevabını `response` objeme atıyorum.
+
+[source,groovy]
+----
+response = httpClient.execute(httpPost);
+----
+
+Response'u aldıktan sonra ResponseBody'i okuyup bir StringBuilder'a eklememiz gerekiyor.
+
+[source,groovy]
+----
+    InputStream ins = response.getEntity().getContent();
+    BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
+    result = new StringBuilder();
+    String line = new String();
+    while ((line = reader.readLine()) != null) {
+        result.append(line);
+    }
+    def resultAsString = result.toString();
+----
+
+`XmlSlurper` yardımı ile cevabımızı ayrıştırıp `dollarsResult` değerimizi alıyoruz.
+`dollarsResult` değerimizle responseBody'imizi oluşturup context'imize set ediyoruz.
+
+Tüm bu adımların sonucunda kodum şu hale gelmiş oluyor.
+
+[source,groovy]
+----
+import com.sun.org.slf4j.internal.LoggerFactory
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.entity.StringEntity
+import org.apache.http.impl.client.HttpClients
+
+import java.net.http.HttpClient
+import java.net.http.HttpResponse
+import java.util.logging.Logger
+
+class NumberToDollars {
+    private static final Logger LOG = LoggerFactory.getLogger('GroovyLogger')
+
+    static void main(String[] args) {
+        int statusCode = 200;
+        context.setStatusCode(statusCode);
+        def numParam = readPathParameter(request)
+
+        String soapBody = "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+                "  <soap:Body>\n" +
+                "    <NumberToDollars xmlns=\"http://www.dataaccess.com/webservicesserver/\">\n" +
+                "      <dNum>${numParam}</dNum>\n" +
+                "    </NumberToDollars>\n" +
+                "  </soap:Body>\n" +
+                "</soap:Envelope>";
+
+
+        HttpClient httpClient = HttpClients.createDefault() as HttpClient;
+        StringEntity stringEntity = new StringEntity(soapBody, "text/xml", "UTF-8")
+        HttpPost httpPost = new HttpPost("https://www.dataaccess.com/webservicesserver/NumberConversion.wso");
+        httpPost.setEntity(stringEntity);
+        HttpResponse response = null
+        StringBuilder result = null
+        try {
+            response = httpClient.execute(httpPost);
+            InputStream ins = response.getEntity().getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
+            result = new StringBuilder();
+            String line = new String();
+            while ((line = reader.readLine()) != null) {
+                result.append(line);
+            }
+            def resultAsString = result.toString();
+            def slurper = new XmlSlurper()
+            def dollarsResult = slurper.parseText(resultAsString).toString();
+
+            String responseBody = "{\"result\": \"${dollarsResult}\"}"
+            context.setResponseBody(responseBody);
+        } catch (IOException e) {
+            LOG.error("Hata Oldu");
+        }
+    }
+
+    private String readPathParameter(HttpServletRequest request) {
+        return new UriTemplate("/dollars/{num}/text")
+                .match(request.getRequestURI())
+                .get("num");
+    }
+
+}
+----
+
+IDE yardımı ile yazığım bu kodu apimin yönlendirme tabında bulunan editöre taşıyorum. Taşırken, IDE üzerinde yazdığım main metodumun içeriği execute metodu olacak şekilde taşıyorum.
+Taşıma sonucunda API tanımında bulunan kodum şu hali almış oluyor.
+
+[source,groovy]
+----
+package com.mirket.gateway.groovy
+
+import groovy.xml.XmlSlurper
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.entity.StringEntity
+
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import groovy.json.JsonSlurper
+import org.apache.http.HttpResponse
+import org.apache.http.client.HttpClient
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.HttpClients
+import org.springframework.web.util.UriTemplate
+import java.util.List
+import java.util.Map
+
+class GroovyRouteScriptImpl implements GroovyRouteScript {
+    private static final Logger LOG = LoggerFactory.getLogger('GroovyLogger')
+
+    void execute(HttpServletRequest request, RoutingContext context) {
+        int statusCode = 200;
+        context.setStatusCode(statusCode);
+        def numParam = readPathParameter(request)
+
+        String soapBody = "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n" +
+                "  <soap:Body>\n" +
+                "    <NumberToDollars xmlns=\"http://www.dataaccess.com/webservicesserver/\">\n" +
+                "      <dNum>${numParam}</dNum>\n" +
+                "    </NumberToDollars>\n" +
+                "  </soap:Body>\n" +
+                "</soap:Envelope>";
+
+
+        HttpClient httpClient = HttpClients.createDefault() as HttpClient;
+        StringEntity stringEntity = new StringEntity(soapBody, "text/xml", "UTF-8")
+        HttpPost httpPost = new HttpPost("https://www.dataaccess.com/webservicesserver/NumberConversion.wso");
+        httpPost.setEntity(stringEntity);
+        HttpResponse response = null
+        StringBuilder result = null
+        try {
+            response = httpClient.execute(httpPost);
+            InputStream ins = response.getEntity().getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
+            result = new StringBuilder();
+            String line = new String();
+            while ((line = reader.readLine()) != null) {
+                result.append(line);
+            }
+            def resultAsString = result.toString();
+            def slurper = new XmlSlurper()
+            def dollarsResult = slurper.parseText(resultAsString).toString();
+
+            String responseBody = "{\"result\": \"${dollarsResult}\"}"
+            context.setResponseBody(responseBody);
+        } catch (IOException e) {
+            LOG.error("Hata Oldu");
+        }
+    }
+
+    private String readPathParameter(HttpServletRequest request) {
+        return new UriTemplate("/dollars/{num}/text")
+                .match(request.getRequestURI())
+                .get("num");
+    }
+}
+----
+
+.API Oluşturma
+image::groovy-external-soap-api/groovy-code-external-soap-api-routing.png[API Oluşturma]
+
+*Kaydet* butonuna tıklayarak apimi kaydediyorum.
+
+=== Test
+
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+Path Parametrelerinde num değerine 0'dan farklı pozitif bir sayı girilir.
+Çalıştır'a tıklanır.
+
+Girdiğimiz num değerinin ingilizce olarak okunuşunu cevap olarak aldığımızı görmüş olduk.
+
+Örnek cevap:
+
+[source]
+----
+{
+  "result": "ten dollars"
+}
+----
+
+.Test
+image::groovy-external-soap-api/groovy-code-external-soap-api-test.png[Test]
+
+== Database Access - MongoDB
+
+Tetiklendiğinde tanımlı veri kaynağından istenilen veriyi dönen bir api tanımlayabilirsiniz.
+Örneğin, veri kaynağında tanımlı olan bir MongoDB'de bulunan `customers` koleksiyonundan id bazlı veri çekecek bir api tanımlamayalım.
+
+=== API Oluşturma
+
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Get Customer By Id - MongoDB
+
+*Açıklama:* Tanımlı bir MongoDB veri kaynağından id bazlı müşteri bilgisi çeken api.
+
+*Durum:* Aktif
+
+*Tip:* REST
+
+*EndPoint:* `/groovy/customers`
+
+*Metot:* GET
+====
+
+*Yönlendirme* sekmesine tıklanır ve *Groovy Kodu Çalıştırılması* seçilir.
+
+
+IDE'de bir groovy projesi açıyorum. Hemen ardından `GetCustomerByIdMongoDB` adında bir groovy'i sınıfı oluşturuyorum.
+
+Hızlıca `public void execute` metodumuda oluşturduktan sonra sınıfım aşağıdaki şekilde oluşmuş oluyor.
+
+[source,groovy]
+----
+class GetCustomerByIdMongoDB {
+    public void execute(HttpServletRequest request, RoutingContext context) {
+
+    }
+}
+----
+
+Ardından veri tabanı erişimi için kullanacağımız `DataSourceFactory` sınıfımızı inject ediyoruz. Groovy script yazmak için kullandığımız IDE projemizde bu satırlar hatalı gözükecektir dikkate almayınız.
+
+[source,groovy]
+----
+@Autowired
+private final DataSourceFactory dataSourceFactory
+----
+
+
+`RoutingContext` set edilmek üzere, `responseHeaders`, `responseBody`, `statusCode` değişkenlerini tanımlıyorum.
+
+[source,groovy]
+----
+Map<String, String> responseHeaders = new HashMap<>()
+String responseBody = "{\"status\": \"OK\"}"
+int statusCode = 200
+----
+
+Request'ten `id` parametresini alıyorum.
+
+[source,groovy]
+----
+String id = request.getParameter('id')
+----
+
+Aldığımız `id` parametresi ile veri tabanından kaydı çekecek metodu `GetCustomerByIdMongoDB` sınıfımıza tanımlayalım.
+
+[source,groovy]
+----
+def findCustomerById(String id) {
+    try {
+        def mongoDatabase = dataSourceFactory.getOrCreteMongoDatabase('<MONGODB-DATASOURCE-ALIAS>', '<DB-NAME>')
+        return mongoDatabase.getCollection('customers').find(Filters.eq('_id', new ObjectId(id))).first()
+    } catch (e) {
+        println('Hata Oldu: {}' + e)
+        return { id: -1 };
+    }
+}
+----
+
+Ana metodumuzun içinde tanımladığımız `findCustomerById` metodumuzu `id` parametresi ile çağıralım.
+
+[source,groovy]
+----
+def customer = this.findCustomerById(id)
+----
+
+Groovy `JsonOutput` sınıfı yardımıyla `customer` kaydımızı json formatına düzgün bir şekilde kodlanmış bir dize haline getirelim.
+
+[source,groovy]
+----
+def responseJson = JsonOutput.toJson(customer)
+----
+
+Response değerimizi ve response header'ımızı context'e set edelim.
+
+[source,groovy]
+----
+context.setResponseBody(json)
+context.setResponseHeaders(responseHeaders)
+----
+
+Son değişikliklerimizide yaptıktan sonra sınıfımız aşağıdaki hali almış oluyor.
+
+[source,groovy]
+----
+import javax.servlet.http.HttpServletRequest
+import java.util.HashMap
+import com.mirket.datasources.DataSourceFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.jdbc.core.RowMapper
+import java.lang.Object
+import java.lang.Override
+import java.sql.ResultSet
+import java.sql.SQLException
+import java.io.Serializable
+import org.json.JSONObject
+import groovy.json.JsonOutput
+import com.mongodb.client.model.Filters
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.bson.types.ObjectId
+
+class GetCustomerByIdMongoDB {
+    private static final Logger LOG = LoggerFactory.getLogger('GroovyLogger')
+
+    @Autowired
+    private final DataSourceFactory dataSourceFactory
+
+    public void execute(HttpServletRequest request, RoutingContext context) {
+        Map<String, String> responseHeaders = new HashMap<>()
+        String responseBody = "{\"status\": \"OK\"}"
+        int statusCode = 200
+        context.setStatusCode(statusCode)
+        String id = request.getParameter('id')
+        def customer = this.findCustomerById(id)
+        def responseJson = JsonOutput.toJson(customer)
+        context.setResponseBody(responseJson)
+        context.setResponseHeaders(responseHeaders)
+    }
+
+    def findCustomerById(String id) {
+        try {
+            def mongoDatabase = dataSourceFactory.getOrCreteMongoDatabase('<MONGODB-DATASOURCE-ALIAS>', '<DB-NAME>')
+            return mongoDatabase.getCollection('customers').find(Filters.eq('_id', new ObjectId(id))).first()
+        } catch (e) {
+            println('Hata Oldu: {}' + e)
+            return { id: -1 };
+        }
+    }
+}
+----
+
+IDE yardımı ile yazığım bu kodu apimin yönlendirme tabında bulunan editöre taşıyorum.
+Taşıma sonucunda API tanımında bulunan kodum şu hali almış oluyor.
+
+[source,groovy]
+----
+package com.mirket.gateway.groovy
+
+import jakarta.servlet.http.HttpServletRequest
+import java.util.HashMap
+import com.mirket.datasources.DataSourceFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.jdbc.core.RowMapper
+import java.lang.Object
+import java.lang.Override
+import java.sql.ResultSet
+import java.sql.SQLException
+import java.io.Serializable
+import org.json.JSONObject
+import groovy.json.JsonOutput
+import com.mongodb.client.model.Filters
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.bson.types.ObjectId
+
+public class GroovyRouteScriptImpl implements GroovyRouteScript {
+    private static final Logger LOG = LoggerFactory.getLogger('GroovyLogger')
+
+    @Autowired
+    private final DataSourceFactory dataSourceFactory
+
+    public void execute(HttpServletRequest request, RoutingContext context) {
+        Map<String, String> responseHeaders = new HashMap<>()
+        String responseBody = "{\"status\": \"OK\"}"
+        int statusCode = 200
+        context.setStatusCode(statusCode)
+        String id = request.getParameter('id')
+        def customer = this.findCustomerById(id)
+        def responseJson = JsonOutput.toJson(customer)
+        context.setResponseBody(responseJson)
+        context.setResponseHeaders(responseHeaders)
+    }
+
+    def findCustomerById(String id) {
+        try {
+            def mongoDatabase = dataSourceFactory.getOrCreteMongoDatabase('<MONGODB-DATASOURCE-ALIAS>', '<DB-NAME>')
+            return mongoDatabase.getCollection('customers').find(Filters.eq('_id', new ObjectId(id))).first()
+        } catch (e) {
+            println('Hata Oldu: {}' + e)
+            return { id: -1 };
+        }
+    }
+}
+----
+
+*Kaydet* butonuna tıklayarak apimi kaydediyorum.
+
+=== Test
+
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+Path Parametrelerinde id değerine veritabanında kayıtlı bir müşterinin id değerini girilir.
+Çalıştır'a tıklanır.
+
+Örnek cevap:
+
+[source,json]
+----
+{
+  "_id": "6426ab336b6e999250d5ccd2",
+  "name": "Russell",
+  "surname": "K. Dailey",
+  "email": "RussellKDailey@rhyta.com"
+}
+----

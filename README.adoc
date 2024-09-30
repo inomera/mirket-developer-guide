@@ -1,0 +1,19 @@
+= Demo Documentation Component B
+// URLs
+:url-project: https://antora.org
+:url-docs: https://docs.antora.org
+:url-org: https://gitlab.com/antora
+:url-group: {url-org}/demo
+:url-demo-site: https://antora.gitlab.io/demo/docs-site
+:url-site-readme: {url-group}/docs-site/blob/master/README.adoc
+:url-opendevise: https://opendevise.com
+
+Component B is an example of a documentation component.
+It is used by the {url-demo-site}[Antora Demo site].
+The playbook and instructions for the Demo site are located in the {url-site-readme}[Demo site playbook project].
+
+== Resources
+
+* {url-project}[Antora Project Site]
+* {url-docs}[Antora Docs]
+* {url-org}[Antora Repositories]

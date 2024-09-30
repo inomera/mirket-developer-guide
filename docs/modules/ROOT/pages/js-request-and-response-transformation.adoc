@@ -1,0 +1,699 @@
+= Javascript Request & Response Dönüşümü
+
+== REST to SOAP
+
+Rest'ten Soap'a bir JavaScript dönüşüm örneği yapalım.
+Bu örnek için senaryomuz şu şekilde, dışarda bir SOAP servisimiz olduğunu varsayalım.
+Biz bu SOAP servisine Rest bir Mirket apisi ile istek yapmaya çalışalım.
+
+=== API Oluşturma
+
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Number to Dollars | REST to SOAP | JS
+
+*Açıklama:* Geçirilen sayının sıfır olmayan dolar tutarını döndüren, açık kaynak soap apisine istek & cevap dönüşümü kullanarak soap isteği atan rest bir mirket apisi.
+Kaynak: https://documenter.getpostman.com/view/8854915/Szf26WHn#2d448676-ccb9-44b6-87f6-4d311a
+
+*Durum:* Aktif
+
+*Tip:* REST
+
+*EndPoint:* `/js/number-to-dollars`
+
+*Metot:* POST
+====
+
+.API Oluşturma
+image::js-req-and-res-transformation-rest-to-soap/js-req-and-res-transformation-api-definition.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *Basit Yönlendirme* seçilir.
+====
+*Backend Http Metod:* POST
+
+*BackendUri:* https://www.dataaccess.com/webservicesserver/NumberConversion.wso
+====
+
+.Yönlendirme
+image::js-req-and-res-transformation-rest-to-soap/js-req-and-res-transformation-api-routing.png[Yönlendirme]
+
+___
+*Dönüşüm* sekmesine tıklanır ve *İstek Veri Dönüşümü* tabında *JavaScript* seçilir.
+
+Bu adımda karşımıza çıkan örnek bir javascript kodu editörde gözükecek.
+
+[source,js]
+----
+function transform(input) {
+    return input;
+}
+----
+
+Bu örnek kodu IDE üzerinde düzenleyerek REST request body'imi json'dan SOAP XML'ine dönüştüreceğim.
+
+IDE üzerinde `RequestTransformation` adında bir javascript dosyası oluşturuyorum.
+Hemen ardından transform metotumuzu tanımlıyoruz.
+
+[source,js]
+----
+function transform(input) {
+    return input;
+}
+----
+
+JavaScript `JSON.parse` metodu ile input olarak gelen request body'imi ayrıştırıyorum.
+
+[source,js]
+----
+const requestBody = JSON.parse(input);
+const num = requestBody.num;
+----
+
+Gidiceğimiz SOAP Servisin request xml'i aşağıdaki şekilde.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <NumberToDollars xmlns="http://www.dataaccess.com/webservicesserver/">
+      <dNum>100</dNum>
+    </NumberToDollars>
+  </soap:Body>
+</soap:Envelope>
+----
+
+Json request'imizden aldığımız num değerini alıp, soap request xml'inde `<dNum>` tagları arasına ekleyip return ediyoruz.
+
+[source,js]
+----
+return `<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <NumberToDollars xmlns="http://www.dataaccess.com/webservicesserver/">
+      <dNum>${num}</dNum>
+    </NumberToDollars>
+  </soap:Body>
+</soap:Envelope>`;
+----
+
+SOAP xml'imin düzgün oluşup oluşmadığını görmek için javascript dosyamızda transform metodumuzu json request body'imiz ile çağırıp, return değerini console loguna yazdırıyorum.
+
+[source,js]
+----
+let soapXML = transform(`{"num": 50}`);
+console.log(soapXML);
+----
+
+Metodumu çalıştırdıktan sonra aşağıdaki gibi bir çıktının console'a çıktığını görüyorum.
+
+[source]
+----
+$ node RequestTransformation.js
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <NumberToDollars xmlns="http://www.dataaccess.com/webservicesserver/">
+      <dNum>50</dNum>
+    </NumberToDollars>
+  </soap:Body>
+</soap:Envelope>
+----
+
+Geliştirme sonrasında javascript kodumuz aşağıda bulunuyor.
+
+[source,js]
+----
+function transform(input) {
+    const requestBody = JSON.parse(input);
+    const num = requestBody.num;
+
+    return `<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <NumberToDollars xmlns="http://www.dataaccess.com/webservicesserver/">
+      <dNum>${num}</dNum>
+    </NumberToDollars>
+  </soap:Body>
+</soap:Envelope>`;
+}
+
+let soapXML = transform(`{"num": 50}`);
+console.log(soapXML);
+----
+
+Bu javascript dosyasınıda yaptığımız transform'u api üzerine taşıyalım.
+
+[source,js]
+----
+function transform(input) {
+    const requestBody = JSON.parse(input);
+    const num = requestBody.num;
+
+    return `<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <NumberToDollars xmlns="http://www.dataaccess.com/webservicesserver/">
+      <dNum>${num}</dNum>
+    </NumberToDollars>
+  </soap:Body>
+</soap:Envelope>`;
+}
+----
+
+___
+
+*Cevap Veri Dönüşümü* tabında *JavaScript* seçilir.
+
+Gittiğimiz SOAP servisin bize döndüğü cevap xml'ini json'a dönüştürmek için bir response transformation kodu yazalım.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <m:NumberToDollarsResponse xmlns:m="http://www.dataaccess.com/webservicesserver/">
+            <m:NumberToDollarsResult>one hundred dollars</m:NumberToDollarsResult>
+        </m:NumberToDollarsResponse>
+    </soap:Body>
+</soap:Envelope>
+----
+
+IDE üzerinde `ResponseTransformation` adında bir javascript dosyası oluşturuyorum.
+Hemen ardından transform metotumuzu tanımlıyoruz.
+
+[source,js]
+----
+function transform(input) {
+    return input;
+}
+----
+
+Response soap xml'inde `NumberToDollarsResult` tagları arasındaki result değerimizi alabilmek için bir pattern tanımlıyorum.
+
+[source,js]
+----
+const numberToDollarsResultPattern = Pattern.compile("<m:NumberToDollarsResult>(.*?)</m:NumberToDollarsResult>");
+----
+
+Tanımladığımız pattern ile eşleşen değeri bize dönen bir metot yazıyorum.
+
+[source,js]
+----
+function getValueByPattern(input, pattern) {
+    const matcher = pattern.matcher(input);
+
+    if (matcher.find()) {
+        return matcher.group(1);
+    }
+    return null;
+}
+----
+
+Yazdığımız metodu transform mateodumuzda çağırıp, json response'umuzu oluşturuyorum.
+
+[source,js]
+----
+const result = getValueByPattern(input, numberToDollarsResultPattern);
+return `{
+      "result": ${result}
+}`;
+----
+
+Geliştirme sonrasında javascript kodumuz aşağıda bulunuyor.
+
+[source,js]
+----
+function transform(input) {
+    const numberToDollarsResultPattern = Pattern.compile("<m:NumberToDollarsResult>(.*?)</m:NumberToDollarsResult>");
+
+    const result = getValueByPattern(input, numberToDollarsResultPattern);
+    return `{
+          "result": ${result}
+    }`;
+}
+
+function getValueByPattern(input, pattern) {
+    const matcher = pattern.matcher(input);
+
+    if (matcher.find()) {
+        return matcher.group(1);
+    }
+    return null;
+}
+----
+
+____
+
+JavaScript kodumuzda kullandığımız `Pattern` sınıfı bir Java sınıfıdır. Java sınıflarını JavaScript kodunuzda kullanmak isterseniz aşağıdaki örnekteki gibi JavaScript kodunuza tanımlayıp kullanabilirsiniz.
+
+[source,js]
+----
+const Pattern = Java.type('java.util.regex.Pattern');
+----
+
+Pattern sınıfı sık kullanılan bir Java sınıfı olduğundan context'e tanımlıdır. Esktra tanımlamanıza gerek yoktur. Pattern harici başka Java sınıfı kullanma ihtiyacınız oluşursa bu örnekteki gibi tanımlayıp kullanabilirsiniz.
+
+____
+
+Bu javascript dosyasınıda yaptığımız transform'u api üzerine taşıyalım.
+
+[source,js]
+----
+function transform(input) {
+    const numberToDollarsResultPattern = Pattern.compile("<m:NumberToDollarsResult>(.*?)</m:NumberToDollarsResult>");
+
+    const result = getValueByPattern(input, numberToDollarsResultPattern);
+    return `{
+          "result": ${result}
+    }`;
+}
+
+function getValueByPattern(input, pattern) {
+    const matcher = pattern.matcher(input);
+
+    if (matcher.find()) {
+        return matcher.group(1);
+    }
+    return null;
+}
+----
+
+.Dönüşüm
+image::js-req-and-res-transformation-rest-to-soap/js-req-and-res-transformation-api-transformation.png[Dönüşüm]
+
+___
+
+*API İsteği Başlıkları* tabında aşağıdaki gibi bir istek başlığı tanımlanır.
+
+====
+*İstek Başlığı İsmi:* Content-Type
+
+*İstekte Gelen Başlığın Üzerine Yaz:* İşaretli
+
+*Değer Kaynağı:* Sabit
+
+*Sabit Değer*: text/xml; charset=utf-8
+====
+
+*Kaydet* butonuna tıklayarak apimi kaydediyorum.
+
+=== Test
+
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+
+*İstek* bölümünde *Gövde* tabına tıklanır. Aşağıdaki gibi bir istek gövdesi eklenir.
+
+[source,json]
+----
+{
+  "num": 50
+}
+----
+
+Çalıştır'a tıklanır.
+
+Örnek cevap:
+
+[source,json]
+----
+{
+  "results": "five hundred dollars"
+}
+----
+
+== SOAP to REST
+
+JSONPlaceholder'da bulunan gönderi güncelleme public apisine, SOAP bir mirket apisi ile istek atmaya çalışalım.
+
+=== API Oluşturma
+
+*Tanım* sekmesinde aşağıdaki bilgiler doldurulur:
+====
+*Ad:* Update Post - JSONPlaceholder | SOAP to REST | JS
+
+*Açıklama:* JSONPlaceholder da REST bir api olan gönderi güncelleme apisine istek ve cevap dönüşümü ile soap isteği yapabilmeyi sağlayan mirket apisi.
+
+*Durum:* Aktif
+
+*Tip:* SOAP
+
+*EndPoint:* `/js/posts-operations`
+
+*Metot:* updatePostRequest
+====
+
+.API Oluşturma
+image::js-req-and-res-transformation-soap-to-rest/js-req-and-res-transformation-soap-api-definition.png[API Oluşturma]
+
+*Yönlendirme* sekmesine tıklanır ve *Basit Yönlendirme* seçilir.
+====
+*Backend Http Metod:* PUT
+
+*BackendUri:* https://jsonplaceholder.typicode.com/posts/1
+====
+
+.Yönlendirme
+image::js-req-and-res-transformation-soap-to-rest/js-req-and-res-transformation-soap-api-routing.png[Yönlendirme]
+
+___
+
+*Dönüşüm* sekmesine tıklanır ve *İstek Veri Dönüşümü* tabında *JavaScript* seçilir.
+
+Bu adımda karşımıza çıkan örnek bir javascript kodu editörde gözükecek.
+
+[source,js]
+----
+function transform(input) {
+    return input;
+}
+----
+
+Bu örnek kodu IDE üzerinde düzenleyerek REST request body'imi json'dan SOAP XML'ine dönüştüreceğim.
+
+IDE üzerinde `RequestTransformation` adında bir javascript dosyası oluşturuyorum.
+Hemen ardından transform metotumuzu tanımlıyoruz.
+
+[source,js]
+----
+function transform(input) {
+    return input;
+}
+----
+
+Mirket API'mize geldiğimiz SOAP XML request'imizi JSONPlaceholder'a giderken kullanacağımız JSON request'imize dönüştürmek için request transformation kodumuzu yazalım.
+
+Mirket apimizi tetiklemek için kullandığımız SOAP request xml'i:
+
+[source,xml]
+----
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://jsonplaceholder.com/wsdl/">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <wsdl:updatePostRequest>
+            <userId>1</userId>
+            <id>2</id>
+            <title>qui est esse</title>
+            <body>est rerum tempore vitae sequi sint nihil reprehenderit</body>
+        </wsdl:updatePostRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+----
+
+Transform metodumuz içerisinde SOAP request'imizdeki değerleri almak için patternleri tanımlayalım.
+
+[source,js]
+----
+const userIdPattern = Pattern.compile("<userId>(.*?)</userId>");
+const idPattern = Pattern.compile("<id>(.*?)</id>");
+const titlePattern = Pattern.compile("<title>(.*?)</title>");
+const bodyPattern = Pattern.compile("<body>(.*?)</body>");
+----
+
+Tanımladığımız pattern ile eşleşen değeri bize dönen bir metot yazalım.
+
+[source,js]
+----
+function getValueByPattern(input, pattern) {
+    const matcher = pattern.matcher(input);
+
+    if (matcher.find()) {
+        return matcher.group(1);
+    }
+    return null;
+}
+----
+
+Yazdığımız metodu transform mateodumuzda çağırıp, json response'umuzu oluşturuyorum.
+
+[source,js]
+----
+    const userId = getValueByPattern(input, userIdPattern);
+    const id = getValueByPattern(input, idPattern);
+    const title = getValueByPattern(input, titlePattern);
+    const body = getValueByPattern(input, bodyPattern);
+
+    return JSON.stringify({userId, id, title, body});
+----
+
+Geliştirme sonrasında javascript kodumuz aşağıda bulunuyor.
+
+[source,js]
+----
+function transform(input) {
+    const userIdPattern = Pattern.compile("<userId>(.*?)</userId>");
+    const idPattern = Pattern.compile("<id>(.*?)</id>");
+    const titlePattern = Pattern.compile("<title>(.*?)</title>");
+    const bodyPattern = Pattern.compile("<body>(.*?)</body>");
+
+    const userId = getValueByPattern(input, userIdPattern);
+    const id = getValueByPattern(input, idPattern);
+    const title = getValueByPattern(input, titlePattern);
+    const body = getValueByPattern(input, bodyPattern);
+
+    return JSON.stringify({userId, id, title, body});
+}
+
+function getValueByPattern(input, pattern) {
+    const matcher = pattern.matcher(input);
+
+    if (matcher.find()) {
+        return matcher.group(1);
+    }
+    return null;
+}
+----
+
+____
+
+JavaScript kodumuzda kullandığımız `Pattern` sınıfı bir Java sınıfıdır. Java sınıflarını JavaScript kodunuzda kullanmak isterseniz aşağıdaki örnekteki gibi JavaScript kodunuza tanımlayıp kullanabilirsiniz.
+
+[source,js]
+----
+const Pattern = Java.type('java.util.regex.Pattern');
+----
+
+Pattern sınıfı sık kullanılan bir Java sınıfı olduğundan context'e tanımlıdır. Esktra tanımlamanıza gerek yoktur. Pattern harici başka Java sınıfı kullanma ihtiyacınız oluşursa bu örnekteki gibi tanımlayıp kullanabilirsiniz.
+
+____
+
+Bu javascript dosyasınıda yaptığımız transform'u api üzerine taşıyalım.
+
+[source,js]
+----
+function transform(input) {
+    const userIdPattern = Pattern.compile("<userId>(.*?)</userId>");
+    const idPattern = Pattern.compile("<id>(.*?)</id>");
+    const titlePattern = Pattern.compile("<title>(.*?)</title>");
+    const bodyPattern = Pattern.compile("<body>(.*?)</body>");
+
+    const userId = getValueByPattern(input, userIdPattern);
+    const id = getValueByPattern(input, idPattern);
+    const title = getValueByPattern(input, titlePattern);
+    const body = getValueByPattern(input, bodyPattern);
+
+    return JSON.stringify({userId, id, title, body});
+}
+
+function getValueByPattern(input, pattern) {
+    const matcher = pattern.matcher(input);
+
+    if (matcher.find()) {
+        return matcher.group(1);
+    }
+    return null;
+}
+----
+
+___
+
+*Cevap Veri Dönüşümü* tabında *JavaScript* seçilir.
+
+Gittiğimiz REST apinin bize döndüğü cevap json'ını soap xml'ine dönüştürmek için bir response transformation kodu yazalım.
+
+[source,json]
+----
+{
+    "id": 1,
+    "title": "foo",
+    "body": "bar",
+    "userId": 1
+}
+----
+
+IDE üzerinde `ResponseTransformation` adında bir javascript dosyası oluşturuyorum.
+Hemen ardından transform metotumuzu tanımlıyoruz.
+
+[source,js]
+----
+function transform(input) {
+    return input;
+}
+----
+
+Response body'i de bulunan değerlere erişebilmek için `JSON.parse` metodu yardımı ile ayrıştırıp `response` adında değişkene atıyorum.
+JSONPlaceholder JSON response'undan gelen değerleri key'leri ile değişkene çıkarıyorum.
+
+[source,js]
+----
+const response = JSON.parse(input);
+const userId = response.userId;
+const id = response.id;
+const title = response.title;
+const body = response.body;
+----
+
+SOAP Response'umuzu bu değerler ile oluşturup dönüyorum.
+
+[source,js]
+----
+return `<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:wsdl=\"http://jsonplaceholder.com/wsdl/\">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <wsdl:updatePostResponse>
+            <userId>${userId}</userId>
+            <id>${id}</id>
+            <title>${title}</title>
+            <body>${body}</body>
+        </wsdl:updatePostResponse>
+    </soapenv:Body>
+</soapenv:Envelope>`
+----
+
+Transform metodumuzu örnek bir json response'u ile çağırıp console'a log olarak yazdıralım.
+
+[source,js]
+----
+const res = transform(`{"userId": 2, "id": 1, "title": "Başlık", "body": "Gövde"}`);
+console.log("Response: ", res);
+----
+
+Metodumuzu çalıştırdıktan sonra aşağıdaki gibi bir çıktının console'a çıktığını görüyoruruz.
+
+[source]
+----
+$ node ResponseTransformation.js
+Response:  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://jsonplaceholder.com/wsdl/">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <wsdl:updatePostResponse>
+            <userId>2</userId>
+            <id>1</id>
+            <title>Başlık</title>
+            <body>Gövde</body>
+        </wsdl:updatePostResponse>
+    </soapenv:Body>
+</soapenv:Envelope>
+----
+
+Geliştirme sonrasında javascript kodumuz aşağıda bulunuyor.
+
+[source,js]
+----
+function transform(input) {
+    const response = JSON.parse(input);
+    const userId = response.userId;
+    const id = response.id;
+    const title = response.title;
+    const body = response.body;
+
+    return `<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:wsdl=\"http://jsonplaceholder.com/wsdl/\">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <wsdl:updatePostResponse>
+            <userId>${userId}</userId>
+            <id>${id}</id>
+            <title>${title}</title>
+            <body>${body}</body>
+        </wsdl:updatePostResponse>
+    </soapenv:Body>
+</soapenv:Envelope>`
+}
+
+const res = transform(`{"userId": 2, "id": 1, "title": "Başlık", "body": "Gövde"}`);
+console.log("Response: ", res);
+----
+
+Bu javascript dosyasınıda yaptığımız transform'u api üzerine taşıyalım.
+
+[source,js]
+----
+function transform(input) {
+    const response = JSON.parse(input);
+    const userId = response.userId;
+    const id = response.id;
+    const title = response.title;
+    const body = response.body;
+
+    return `<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:wsdl=\"http://jsonplaceholder.com/wsdl/\">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <wsdl:updatePostResponse>
+            <userId>${userId}</userId>
+            <id>${id}</id>
+            <title>${title}</title>
+            <body>${body}</body>
+        </wsdl:updatePostResponse>
+    </soapenv:Body>
+</soapenv:Envelope>`
+}
+----
+
+.Dönüşüm
+image::js-req-and-res-transformation-soap-to-rest/js-req-and-res-transformation-soap-api-transformation.png[Dönüşüm]
+
+___
+
+*API İsteği Başlıkları* tabında aşağıdaki gibi bir istek başlığı tanımlanır.
+
+====
+*İstek Başlığı İsmi:* Content-Type
+
+*İstekte Gelen Başlığın Üzerine Yaz:* İşaretli
+
+*Değer Kaynağı:* Sabit
+
+*Sabit Değer*: application/json
+====
+
+*Kaydet* butonuna tıklayarak apimi kaydediyorum.
+
+=== Test
+
+Oluşturulan API'nin *güncelle* butonuna tıklanır.
+*Test* sekmesine tıklanır.
+
+*İstek* bölümünde *Gövde* tabına tıklanır. Aşağıdaki gibi bir istek gövdesi eklenir.
+
+[source,xml]
+----
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://jsonplaceholder.com/wsdl/">
+  <soapenv:Body>
+    <wsdl:updatePostRequest>
+      <userId>1</userId>
+      <id>2</id>
+      <title>qui est esse</title>
+      <body>est rerum tem</body>
+    </wsdl:updatePostRequest>
+  </soapenv:Body>
+</soapenv:Envelope>
+----
+
+Çalıştır'a tıklanır.
+
+Örnek cevap:
+
+[source,xml]
+----
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsdl="http://jsonplaceholder.com/wsdl/">
+  <soapenv:Body>
+    <wsdl:updatePostResponse>
+       <userId>1</userId>
+       <id>2</id>
+       <title>qui est esse</title>
+       <body>est rerum tem</body>
+    </wsdl:updatePostResponse>
+  </soapenv:Body>
+</soapenv:Envelope>
+----

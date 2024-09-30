@@ -1,0 +1,6 @@
+name: mirket-developer-guide
+title: Mirket Geliştirici Dokümanı
+version: v4.8.x
+display_version: v4.8.x
+nav:
+  - modules/ROOT/nav.adoc

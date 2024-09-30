@@ -1,0 +1,47 @@
+= Loglama
+
+Mirket log ayarlarında sistem genelinde mikro servislerin log seviyelerini değiştirmeye yarayan bir Mirket özelliğidir. Mikro servislerde paket bazlı log seviyesi değişimi yapılabilir. Birden fazla farklı pakete log seviyesi girilebilir.
+
+== Sistem Geneli Log Seviyesi Tanımlama
+
+Sol menüden `Ayarlar` -> `Log Ayarları` takip edilerek `Log Ayarları` sayfasına erişilir.
+
+.Loglama
+image::logging/system-log-settings.png[Loglama]
+
+Sol tablardan mikro servisi seçip, açılan input alanlarına paket bazlı log seviyesi girilebilir. Birden fazla farklı pakete log seviyesi girerek mikro servisin log ayarlarını daha detaylı yapabiliriz.
+
+Örneğin, Gateway mikro servisinde bulunan `nashornsandbox` paketinin log seviyesini infoya çekmek istersek aşağıdaki adımları takip edebiliriz.
+
+- Sol tabdan mikro servis seçilir.
+- Açılan input alanına paket adı girilir. `com.inomera.nashornsandbox`
+- Log seviyesi kısmından girilen paket için info log seviyesi seçilir.
+
+Eğer her hangi bir paket için girilen log seviyesini kaldırmak ister isek, `Log Seviyesi` input alanı yanında bulunan *Kaldır* butonu ile kaldırılabilir.
+
+== API Bazında Log Seviyesi Tanımlama
+
+Sol menüden `Katalog` -> `API` takip edilerek `API Listesi` sayfasına erişilir.
+Log seviyesi tanımlanacak olan apinin *Güncelle* butonuna tıklanarak `API Düzenleme` sayfasına erişilir.
+Burada bulunan `Loglama` tabından log seviyesi tanımı değiştirilebilir.
+
+.API Bazlı Loglama
+image::logging/api-based-logging.png[API Bazlı Loglama]
+
+`Loglama` tabı içerisinde bulunan `Loglama Detayı` tabından, istek ve cevap için loglama ayarları yapılabilir.
+
+.API Bazlı Loglama Detayı
+image::logging/api-based-logging-detail.png[API Bazlı Loglama Detayı]
+
+*Basit yönlendirme* yapılan bir API için, loglama detayında bulunan `Client Request` ve `Client Response` başlıkları altında bulunan ayarlar kullanılabilir.
+
+*Yük dağıtımı ile yönlendirme* yapılan bir API için, loglama detayında bulunan `Proxy Request` ve `Proxy Response` başlıkları altında bulunan ayarlar kullanılabilir.
+
+Örneğin, *basit yönlendirme* yapan bir API için istek gövdesinin loglanmasını isteyecek olursam, `Loglama Detayı` altında bulunan `Client Request` başlığı altındaki `İstek gövdesi loglansın mı?` checkbox'ını işaretleyip API'yi kaydetmem yeterli olacaktır.
+
+Aynı şekilde *yük dağıtımı ile yönlendirme* yapan bir API için istek gövdesinin loglanmasını isteyecek olursam, `Loglama Detayı` altında bulunan `Proxy Request` başlığı altındaki `İstek gövdesi loglansın mı?` checkbox'ını işaretleyip API'yi kaydetmem yeterli olacaktır.
+
+Sistem genelinde ve API tabanlı olarak loglama detaylarına dair daha fazla bilgi almak ve SIEM loglaması hakkında derinlemesine bilgi sahibi olmak için ilgili bağlantılara tıklayarak demo videosunu izleyebilirsiniz.
+
+* Sistem genelinde ve API tabanlı loglama -> https://drive.google.com/file/d/1zux8MQZYqlbc_vPUcwJIKlYUXZGACq9t/view?usp=share_link
+* SIEM loglama -> https://drive.google.com/file/d/1FhE_CS3KcGXK7VoxKptWa0qxYXl0yYi6/view
