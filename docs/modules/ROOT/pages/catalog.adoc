@@ -47,7 +47,24 @@ Her apinin solunda bulunan "Görüntüle" butonuna tıklayarak da mevcut API 'ni
 Ayrıca yine her apinin solunda bulunan "Kopyala" butonuna tıklayarak da mevcut API 'nin değerleri kopyalanarak yeniden bir API oluşturulabilir.
 
 .API Listeleme Ekranı
-image::api_list.png[API Listeleme Ekranı]
+image::catalog/api_list.png[API Listeleme Ekranı]
+
+=== API İndir
+
+.API İndir
+image::catalog/api-download.png[API İndir]
+
+API listesinden istenen herhangi bir API, indirme butonuna tıklayarak indirilebilir.
+Bu verilerin şifrelenmiş halde indirilmesi istenirse uygulama ayarları üzerinden bu ayar aktifleştirilebilir.
+
+=== API Yükle
+
+.API Yükle
+image::catalog/api-upload.png[API Yükle]
+
+Eğer elinizde bir API'nin dışa aktarımı mevcut ise API Yükle butonuna tıklayarak bu API'yi içe aktarabilirsiniz.
+
+*Önemli Bilgi*: Eğer API dışa aktarılırken şifreleme ayarı açıksa, içe aktarırken de bu ayar açık olmalıdır. Aksi takdirde hatalı yükleme oluşabilir.
 
 === API Oluşturma Ekranı
 
@@ -343,7 +360,7 @@ Kullanıcı “Temizle” butonuna tıklayarak arama kriterlerini temizleyebilir
 Her api kullanıcısının solunda bulunan "Güncelle" butonuna tıklayarak da mevcut api kullanıcıları üzerinde değişiklikler yapılabilir.
 
 .API Kullanıcıları Listeleme Ekranı
-image::api_users_list.png[API Kullanıcıları Listeleme Ekranı]
+image::catalog/api_users_list.png[API Kullanıcıları Listeleme Ekranı]
 
 === API Kullanıcısı Oluşturma Ekranı
 
@@ -479,7 +496,24 @@ Uygulamada kullanılacak veri kaynakları (veritabanı bağlantıları) ayarlar�
 Bu veritabanlarına daha sonra js ve groovy kodları kullanılarak erişilir.
 
 .Veri Kaynakları Listeleme
-image::datasource_definitions_01.jpeg[Veri Kaynakları Listeleme]
+image::catalog/datasource-list.png[Veri Kaynakları Listeleme]
+
+=== Veri Kaynağı İndir
+
+.Veri Kaynağı İndir
+image::catalog/datasource-download.png[Veri Kaynağı İndir]
+
+Veri Kaynakları listesinden istenen herhangi bir veri kaynağı, indirme butonuna tıklayarak indirilebilir.
+Bu verilerin şifrelenmiş halde indirilmesi istenirse uygulama ayarları üzerinden bu ayar aktifleştirilebilir.
+
+=== Veri Kaynağı Yükle
+
+.Veri Kaynağı Yükle
+image::catalog/datasource-upload.png[Veri Kaynağı Yükle]
+
+Eğer elinizde bir Veri Kaynağı'nin dışa aktarımı mevcut ise Yeni Veri Kaynağı Yükle butonuna tıklayarak bu veri kaynağını içe aktarabilirsiniz.
+
+*Önemli Bilgi*: Eğer Veri Kaynağı dışa aktarılırken şifreleme ayarı açıksa, içe aktarırken de bu ayar açık olmalıdır. Aksi takdirde hatalı yükleme oluşabilir.
 
 .Veri Kaynakları Görüntüleme
 image::datasource_definitions_02.jpeg[Veri Kaynakları Görüntüleme]
@@ -505,7 +539,24 @@ Düzenleme ve oluşturma ekranında seçilen kod tipine göre (javascript veya g
 yazı görünümü değişmektedir.
 
 .Ortak Kodlar Listeleme
-image::shared_codes_01.jpeg[Ortak Kodlar Listeleme]
+image::catalog/shared-code-list.png[Ortak Kodlar Listeleme]
+
+=== Ortak Kod İndir
+
+.Ortak Kod İndir
+image::catalog/shared-code-download.png[Ortak Kod İndir]
+
+Ortak Kodlar listesinden istenen herhangi bir ortak kod, indirme butonuna tıklayarak indirilebilir.
+Bu verilerin şifrelenmiş halde indirilmesi istenirse uygulama ayarları üzerinden bu ayar aktifleştirilebilir.
+
+=== Ortak Kod Yükle
+
+.Ortak Kod Yükle
+image::catalog/shared-code-upload.png[Ortak Kod Yükle]
+
+Eğer elinizde bir Ortak Kod'un dışa aktarımı mevcut ise Yeni Ortak Kod Yükle butonuna tıklayarak bu veri kaynağını içe aktarabilirsiniz.
+
+*Önemli Bilgi*: Eğer Ortak Kod dışa aktarılırken şifreleme ayarı açıksa, içe aktarırken de bu ayar açık olmalıdır. Aksi takdirde hatalı yükleme oluşabilir.
 
 
 === Groovy Ortak Kod
@@ -579,7 +630,24 @@ Bu kısım raporlama amaçlı belirli alanları tutmak için de kullanılabilir.
 
 
 .Özellik Tanımları Listeleme
-image::attribute_definitions_01.jpeg[Özellik Tanımları Listeleme]
+image::catalog/attribute-definition-list.png[Özellik Tanımları Listeleme]
+
+=== Özellik Tanımı İndir
+
+.Özellik Tanımı İndir
+image::catalog/attribute-definition-download.png[Özellik Tanımı İndir]
+
+Özellik Tanımları listesinden istenen herhangi bir özellik tanımı, indirme butonuna tıklayarak indirilebilir.
+Bu verilerin şifrelenmiş halde indirilmesi istenirse uygulama ayarları üzerinden bu ayar aktifleştirilebilir.
+
+=== Özellik Tanımı Yükle
+
+.Özellik Tanımı Yükle
+image::catalog/attribute-definition-upload.png[Özellik Tanımı Yükle]
+
+Eğer elinizde bir Özellik Tanımı'nın dışa aktarımı mevcut ise Yeni Özellik Tanımı Yükle butonuna tıklayarak bu veri kaynağını içe aktarabilirsiniz.
+
+*Önemli Bilgi*: Eğer Özellik Tanımı dışa aktarılırken şifreleme ayarı açıksa, içe aktarırken de bu ayar açık olmalıdır. Aksi takdirde hatalı yükleme oluşabilir.
 
 .Özellik Tanımları Düzenleme
 image::attribute_definitions_02.jpeg[Özellik Tanımları Düzenleme]
