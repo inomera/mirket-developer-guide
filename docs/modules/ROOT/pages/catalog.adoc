@@ -20,6 +20,20 @@ Kullanıcı, Organizasyon Listeleme ekranında yer alan “Organizasyon Oluştur
 .Organizasyon Oluşturma Ekranı
 image::organization_create.png[Organizasyon Oluşturma Ekranı]
 
+=== Çoklu Ortam Senkronizasyonu
+
+==== Oluşturma
+.Organizasyon Senkronizasyonu
+image::catalog/sync-organisation.png[Organizasyon Senkronizasyonu]
+
+İlgili veriler doldurulduktan sonra Kaydet butonuna basılır. Eğer ki çoklu ortam aktifse oluşturma işlemi başarılı olduktan sonra ekranda oluşturulan organizasyonun diğer ortamlarla senkronize edilmek istendiği sorulur.
+
+==== Güncelleme
+.Organizasyon Senkronizasyonu
+image::catalog/sync-organisation.png[Organizasyon Senkronizasyonu]
+
+İlgili organizasyon istenen verilerle güncellendikten sonra Güncelle butonuna basılır. Güncelleme işlemi başarılı olduktan sonra ekranda güncellenen organizasyonun diğer ortamlarla senkronize edilmek istendiği sorulur.
+
 == API
 
 === API Listeleme Ekranı
@@ -303,6 +317,20 @@ API tanımında seçilen method tipi ve endpoind değeri bu alanda bulunan metho
 
 Seçilen şablona göre API'nin bilgileri işlenir ve şablonun örnek kodu oluşturulup gösterilir.
 
+=== Çoklu Ortam Senkronizasyonu
+
+==== Oluşturma
+.Yeni API Senkronizasyonu
+image::catalog/create-api-synchronize.png[Yeni API Senkronizasyonu]
+
+İlgili veriler doldurulduktan sonra Kaydet butonuna basılır. Eğer ki çoklu ortam aktifse oluşturma işlemi başarılı olduktan sonra ekranda oluşturulan API'nin diğer ortamlarla senkronize edilmek istendiği sorulur.
+
+==== Güncelleme
+.Güncellenen API Senkronizasyonu
+image::catalog/edit-api-synchronize.png[Güncellenen API Senkronizasyonu]
+
+İlgili API istenen verilerle güncellendikten sonra Güncelle butonuna basılır. Güncelleme işlemi başarılı olduktan sonra ekranda güncellenen API'nin diğer ortamlarla senkronize edilmek istendiği sorulur.
+
 == Katalog -> API Kullanıcıları
 
 === API Kullanıcıları Listeleme Ekranı
@@ -335,7 +363,7 @@ image::catalog/api_user_create.png[API Kullanıcısı Oluşturma Ekranı]
 İş ortağının gelmesi beklenen IP bilgileri bu kısma girilir.
 
 .API Kullanıcısı Kimlik Doğrulama Yöntemleri
-image::api_consumers_authentication_strategy.png[Kimlik Doğrulama Yöntemleri]
+image::catalog/api_consumers_authentication_strategy.png[Kimlik Doğrulama Yöntemleri]
 
 
 * *Kimlik Doğrulama yöntemleri:*
@@ -353,7 +381,16 @@ Bu bilgiler örnekte gösterildiği gibi girilerek istek gönderilebilir. ör: h
 ** *Parametrede Kullanıcı Adı & Şifre:* Parametrede Kullanıcı Adı & Şifre seçilip ileri butonuna tıklanır.
 Kullanıcı Adı & Şifre ve Kullanıcı Adı & Şifre parametre adı bilgileri girilerek kimlik doğrulama yöntemi belirlenir.
 Parametreye bu bilgiler örnekte gösterildiği gibi girilerek istek gönderilebilir. ör: http://example.inomera.com/ws/rest/v10/subscription/list?username=asdf&password=qwerrrrt
-** *Anonim:* Herhangi bir doğrulama yöntemi kullanılmaz, API'den doğrudan cevap alınabilir.
+** *İstek Gövdesinde API Key:* İstek gövdesinde API Key seçilip ileri butonuna tıklanır.
+Sorgu dili(Json Path, XPath) seçilip ileri butonuna tıklanır.
+Apikey ve Apikey Path bilgileri girilerek kimlik doğrulama yöntemi belirlenir.
+** *İstek Gövdesinde Kullanıcı Adı & Şifre:* İstek Gövdesinde Kullanıcı Adı & Şifre seçilip ileri butonuna tıklanır.
+Sorgu dili(Json Path, XPath) seçilip ileri butonuna tıklanır.
+İstek gövdesinde gönderilecek Kullanıcı Adı & Şifre değeri ve Kullanıcı Adı & Şifre pathi girilerek kimlik doğrulama yöntemi belirlenir.
+** *İstek Gövdesinde Temel Kimlik Doğrulama:* İstek gövdesinde temel kimlik doğrulama seçildiğinde gelen username ve password'ün base64 hash'inin alınıp istek gövdesinde belirli bir path'e koyulmasıdır.
+İstek Gövdesinde Temel Kimlik Doğrulama seçilip ileri butonuna tıklanır.
+Sorgu dili(Json Path, XPath) seçilip ileri butonuna tıklanır.
+İstek gövdesinde gönderilecek kimlik bilgisinin Kullanıcı Adı & Şifre değeri ve Kullanıcı Adı & Şifre path'i girilerek kimlik doğrulama yöntemi belirlenir.
 
 ==== Hata Kodları
 
@@ -361,6 +398,20 @@ xref:error-codes.adoc#_api_kullanıcısı_altına_hata_kodu_tanımlama[Api Kulla
 
 .API Kullanıcısı Hata Kodları
 image::catalog/api-consumer-error-code.png[API Kullanıcısı Hata Kodları]
+
+==== Çoklu Ortam Senkronizasyonu
+
+===== Oluşturma
+.Oluşturulan API Kullancısı Senkronizasyon
+image::catalog/create-api-consumer-synchronize.png[Oluşturulan API Kullancısı Senkronizasyon]
+
+İlgili veriler doldurulduktan sonra Kaydet butonuna basılır. Eğer ki çoklu ortam aktifse oluşturma işlemi başarılı olduktan sonra ekranda oluşturulan organizasyonun diğer ortamlarla senkronize edilmek istendiği sorulur.
+
+===== Güncelleme
+.Güncellenen API Kullancısı Senkronizasyon
+image::catalog/edit-api-consumer-synchronize.png[Güncellenen API Kullancısı Senkronizasyon]
+
+İlgili API istenen verilerle güncellendikten sonra Güncelle butonuna basılır. Güncelleme işlemi başarılı olduktan sonra ekranda güncellenen organizasyonun diğer ortamlarla senkronize edilmek istendiği sorulur.
 
 == Katalog -> Planlar
 
@@ -407,7 +458,22 @@ image::api_plans_restrictions.png[Plana API Ekleme Ekranı]
 ** *Algoritma:* Intervally seçilirse kullanım kısıtlama periyodu tamamlandıktan sonra yeni kullanım haklarının tamamı aktif hale getirilir. Örneğin kullanıcıya saniyede 10 kullanım hakkı verildiğinde her saniyenin sonunda kullanıcıya 10 kullanım hakkı verilir.
 Greedy seçilirse kullanım hakkı olabilecek en kısa süre içerisinde arttırılmaya çalışılır. Örneğin saniyede 10 kullanım verildiği durumda kullanıcıya her 100 milisaniyede bir yeni kullanım hakkı verilecektir.
 
-=== Katalog -> Katalog Ayarları -> Veri Kaynakları
+=== Çoklu Ortam Senkronizasyonu
+
+==== Oluşturma
+.Oluşturulan Plan Senkronizasyonu
+image::catalog/create-plan-synchronize.png[Oluşturulan Plan Senkronizasyonu]
+
+İlgili veriler doldurulduktan sonra Kaydet butonuna basılır. Eğer ki çoklu ortam aktifse oluşturma işlemi başarılı olduktan sonra ekranda oluşturulan planın diğer ortamlarla senkronize edilmek istendiği sorulur.
+
+==== Güncelleme
+.Güncellenen Plan Senkronizasyonu
+image::catalog/edit-plan-synchronize.png[Güncellenen Plan Senkronizasyonu]
+
+İlgili plan istenen verilerle güncellendikten sonra Güncelle butonuna basılır. Güncelleme işlemi başarılı olduktan sonra ekranda güncellenen plan diğer ortamlarla senkronize edilmek istendiği sorulur.
+
+
+== Katalog -> Katalog Ayarları -> Veri Kaynakları
 
 Uygulamada kullanılacak veri kaynakları (veritabanı bağlantıları) ayarları burada yapılır.
 Bu veritabanlarına daha sonra js ve groovy kodları kullanılarak erişilir.
@@ -428,7 +494,7 @@ Client side sertifika yüklenme özelliği ile ilgili daha fazla bilgi edinmek i
 
 * https://drive.google.com/file/d/1r0f_5wwx8DqskVaFSxtbKqSpiUnGw1Zz/view?usp=sharing
 
-=== Katalog -> Katalog Ayarları -> Ortak Kodlar
+== Katalog -> Katalog Ayarları -> Ortak Kodlar
 
 Api üzerinde yönlendirme ve dönüşüm için kod yazarken ortak kullanılacak kodlar burada tanımlanır.
 Böylece aynı kodların birden fazla yerde tekrarlanması önlenir.
@@ -442,7 +508,7 @@ yazı görünümü değişmektedir.
 image::shared_codes_01.jpeg[Ortak Kodlar Listeleme]
 
 
-==== Groovy Ortak Kod
+=== Groovy Ortak Kod
 
 .Ortak Kodlar Groovy Görüntüleme
 image::shared_codes_04.jpeg[Ortak Kodlar Groovy Görüntüleme]
@@ -452,7 +518,7 @@ image::shared_codes_04.jpeg[Ortak Kodlar Groovy Görüntüleme]
 image::shared_codes_05.jpeg[Ortak Kodlar Groovy Düzenleme]
 
 
-==== JavaScript Ortak Kod
+=== JavaScript Ortak Kod
 
 
 .Ortak Kodlar Javascript Görüntüleme
@@ -463,7 +529,7 @@ image::shared_codes_02.jpeg[Ortak Kodlar Javascript Görüntüleme]
 image::shared_codes_03.jpeg[Ortak Kodlar Javascript Düzenleme]
 
 
-==== Groovy Header Rule Script Ortak Kod
+=== Groovy Header Rule Script Ortak Kod
 
 .Ortak Kodlar Header Rule Script Groovy Görüntüleme
 image::shared_codes_10.jpeg[Ortak Kodlar Header Rule Script Groovy Görüntüleme]
@@ -492,7 +558,7 @@ public class HeaderRule implements GroovyHeaderRuleScript {
 }
 ----
 
-==== JavaScript Header Rule Script Ortak Kod
+=== JavaScript Header Rule Script Ortak Kod
 
 .Ortak Kodlar Header Rule Script JavaScript Görüntüleme
 image::shared_codes_08.jpeg[Ortak Kodlar Header Rule Script JavaScript Görüntüleme]
@@ -502,7 +568,7 @@ image::shared_codes_08.jpeg[Ortak Kodlar Header Rule Script JavaScript Görünt�
 image::shared_codes_09.jpeg[Ortak Kodlar Header Rule Script JavaScript Düzenleme]
 
 
-=== Katalog -> Katalog Ayarları -> Özellik Tanımları
+== Katalog -> Katalog Ayarları -> Özellik Tanımları
 
 Kullanıcılar, Bir özellik tanımı yapılarak API'de, Api Kullanıcılarında, Organizasyonda ve Plan'da gösterebilirler.
 Aşağıdaki ekrandan yeni bir özellik tanımlarken hangi entity için olduğunu seçilmektedir.
