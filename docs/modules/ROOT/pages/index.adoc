@@ -15,6 +15,47 @@ Versiyon değişiklik yöntemi (semantik versiyonlama yöntemi uygulanmaktadır)
 * **Minor** : 1.0.0 -> 1.1.0
 * **Patch** : 1.0.0 -> 1.0.1
 
+
+== 4.9.X (Güncel = 4.9.2)
+
+=== Yeni Özellikler
+
+* Kısmi Katalog Export / Import özelliği
+- API
+- Veri Kaynakları
+- Ortak Kodlar
+- Özellik Tanımları
+* Zamansal limit özelliği
+- Sistem Geneli
+- API Kullanıcıları
+- API
+
+=== İyileştirmeler
+
+* Ortak Kodların API' lerden Filtrelenmesi
+* API' ye Yönlendirme Tipi Filtresi Eklenmesi
+* Özellik Tanımlarının Arama Filtresi Olarak API
+* API Kullanıcısı Ekranlarına Getirilmesi
+* API Tanımla Sayfasından Ayrılma Durumunda Uyarı Verilmesi
+* Cache yüklenme zamanı (%50 zamansal kazanım)
+* Cache güncelleme politikası güncellendi (%50 cache güncelleme zamansal kazanım)
+* API -> Tanım tabında -> Zamansal API Kısıtlama özelliği, İstek Kuralları Tabı içerisinde yatay tab olarak taşındı.
+* i18n -> Uyarı mesajları/etiketler/butonların içeriklerinin iyileştirmesi
+* API Kullancısı -> Kısıtlamalar tabı eklendi (IP Blacklist, Whitelist ve Zaman limit özellikleri tab altına taşındı)
+* API Kullanıcı Doğrulama Yöntemi (XPath ve JSON Path seçildiğinde informatif bilgilendirme tooltipler eklendi)
+
+=== Hatalar
+
+* Backup sayfasından yedeklenmiş dump, restore işlemi hatalı path'e bakıyordu, dışarıdan dump import sürecinden ayrıştırıldı
+* API Cache : Response Header Content Accept Header, * (hepsi) ve Date değeri dinamik anlık zaman olarak set edilecek şekilde değiştirildi.
+* Yeni API Oluşturulurken API sayfasından ayrılınca uyarı popup çıkıyordu.
+* API -> Edit Sayfası -> Dönüşüm Tab'ı içindeki Header eklendiğinde sil butonun ikon düzeltmesi
+* Backup -> Restore işleminde mevcut datanın üzerine yazacak strateji ile çalışıyordu. Mükerrer data import sebebiye veriyordu. Önceki collection drop, yenisini import şeklinde iyileştirme yapıldı. (DB restore process)
+
+=== Kaldırılan Özellikler
+
+* Anonim yetkilendirme özelliği
+
 == Bileşenler
 
 **Ağ Geçidi (Gateway) :** API ön ucu görevi gören, API isteklerini alan, kısıtlama ve güvenlik ilkelerini uygulayan, istekleri arka uç hizmetine iletir ve ardından yanıtı istek sahibine geri iletir. Ağ geçidi istekleri ve yanıtları anında düzenlemek ve değiştirmek için bir dönüştürme motoru içerir(versiyon 4.x.x ile birlikte). Ağ geçidi, analitik verileri periyodik olarak toplar ve önbelleğe alma sağlama gibi işlevler de sağlayabilir. Ağ geçidi, kimlik doğrulama, yetkilendirme, güvenlik, denetim ve mevzuat uyumluluğunu desteklemek için işlevsellik sağlar.
@@ -27,29 +68,74 @@ Versiyon değişiklik yöntemi (semantik versiyonlama yöntemi uygulanmaktadır)
 
 **Hazelcast :** Dağıtık hesaplama, ön bellek/local bellek, kilitleme, kuyruklama işllemleri için kullanılır.
 
+**Notifikasyon :** Asenkron API lerin, uç sistemden alınan bilgileri, hedef sistemlere http rest bildirimler çıkar.
+
 **Veritabanı :** Katalog, konfigürasyon ve metik bilgilerini deplomaktan sorumludur.
 
 **(Opsiyonel) Ödeme :** Ticari API'lere erişim için ücretlendirmeyi destekleyen işlevselliktir. Bu işlevsellik, kullanıma, yüke ve işlevselliğe dayalı olarak fiyatlandırma kurallarının ayarlanması, ilgili ödeme kanalına göre entegre edilmesi, CDR üretilmesi desteği içerebilir. Kuruma göre ödeme yöntemleri/akışları özel olarak geliştirilir.
 
-== Yazılım Mimarisi
+== Sistem Mimarisi
 
 .Mirket Janissary Mimari
 image::mirket-architecture.png[Mirket Yazılım Mimarisi]
 
-== Özellikler
+== Yol Haritası
 
-* API Kullanıcısı tanıma (authentication -> ip, header, basic auth, no-auth for firewall based)
-* API Kullanıcısı - API yetkilendirme (authorization)
-* IP bazlı kısıtlama, her API kullanıcısı için ayrı IP adresi tanımlama
+** 5.X.X Özellikler (Major)
+* Arayüzlerin daha kullanıcı dostu hale getirilmesi
+* Multi tenant özelliği
+* Tenant bazlı tüm yetkinliklerin ayrıştırılması
+* Tenant bazlı veritabanın ayrıştırılması
+* Tenant bazlı loglamanın ayrıştırılması
+* Tenant bazlı kaynak ayrıştırılması
+* Tenant bazlı konteyner trafiğinin ayrıştırılması
+* Public API Portal
+* AI desteği (katalog, custom code generation)
+
+** 4.X.X Planlanan Özellikler (Minor)
+
+* JWT Yetkinliği (Beta sürüm)
+* Hassas verinin maskelenmesi
+* Gateway hatalarından alarm oluşturma özelliği
+* Mantıksal API Grup özelliği
+* API bazlı healtcheck
+
+** Mevcut Özellikler (Güncel Stabil Sürüm : 4.9.2)
+
+* Arayüzden DB restore özelliği
+* Arayüzden ve Otomatik olarak DB backup özelliği
+* Kısmi Katalog Export / Import
+* Verimerkezleri arası katalog veri senkronizasyonu özelliği
+* API - Kullanıcı Doğrulama (Header, Basic, QueryString, Request Body gibi)
+* API - Kullanıcı yetkilendirme
+* API ve API Kullanıcılar üzerinde Beyaz/Kara list bazlı IP kısıtlama, Zaman bazlı erişim kısıtlamaları
 * REST + SOAP API desteği
 * API ve API kullanıcısı bazlı istatistikleri tutma ve grafik olarak gösterme
 * Anlık istatistik hesaplama ve near real-time gösterim
-* Çoklu Veritabanı desteği (Mongodb, Oracle, MySQL DB)
-* Basic authentication dahil olmak üzere farklı header/url authentication yapılarını destekler
-* Custom request header tanımlama ve header’ların farklı veri kaynaklarından beslenebilmesi
-* API kullanıcısı bazlı API’ye gelebilecek istekleri kısıtlama (throttling)
-* Farklı sunuculara round robin istekleri dağıtabilme (loadbalancing)
-* Merkezi konfigürasyon (openshift/kubernetes configMap veya config-server uygulaması)
+* İstek / Cevap dönüşümleri
+* API, API Kullanıcı bazlı rate limit, API bazlı throttling
+* Basit, Roud Robbin (Load Balancing), Custom (Groovy, JS Function) yönlendirmeler
+* Dinamik/Statik merkezi konfigürasyonlar
+* Rol bazlı yetkilendirilmiş portal
+* Veri kaynağının servis olarak sağlanması (rdbms : oracle, mysql, mssql, postgresql, no-sql : mongo, cassandra)
+* Asenkron API özelliği (kısıtlı kullanım)
+* Notifikasyon özelliği
+* Çoklu veri kaynağının birleştirilmesi (composite-api)
+* Özellik bazlı yük dağılımı
+* Operasyon / Geliştirici için zenginleştirilmiş online / offline doküman
+* Geliştirici için api test özelliği
+* Cache özelliği
+* Kural bazlı api alarm üretilmesi özelliği
+* Örnek kod üretilmesi özelliği
+* Sistem, API bazlı log yönetimi özelliği
+* Özel hata kodları özelliği
+* API bazlı kural özelliği
+* Dinamik kod yazımı özelliği (javascript, groovy)
+* Organizasyon bazlı izole ortak kod/fonksiyon çağırma özelliği
+* IDM Entegrasyonu
+* SIEM loglama
+* Çoklu domain desteği
+* Konteyner DB (MongoDB)
 * Mikroservis mimarisi
-* Ön yüzde farklı rollerde kullanıcılar portali kullanabilir
-* Altyapı desteği (Standalone jar, Docker, Kubernetes, Openshift)
+* Altyapı desteği (Docker, Kubernetes, Openshift)
+

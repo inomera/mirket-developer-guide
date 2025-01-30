@@ -9,4 +9,6 @@
 * xref:error-codes.adoc[Hata Kodları]
 * xref:logging.adoc[Loglama]
 * xref:http-settings.adoc[HTTP Ayarları]
+* xref:restrictions-settings.adoc[Kısıtlama Ayarları]
+* xref:backup-settings.adoc[Yedekleme Ayarları]
 
