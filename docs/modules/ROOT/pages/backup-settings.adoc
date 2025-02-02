@@ -1,0 +1,25 @@
+= Yedekleme Ayarları
+
+Sol menüden Ayarlar -> Yedekleme Ayarları menüsü seçildiğinde, Yedekleme Ayarları sayfası açılır.
+Yedekleme ayarlar temel olarak üç (3) yetkinliğe sahiptir.
+
+1 - Belirli periyodlarda veritabanı yedeğini alır.
+
+Veritabanı Yedekleme Job varsayılan olarak aktif ve her gece yarısı saat 1 de çalışacak şekilde gelir.
+Admin rolüne sahip kullanıcı jobı pasie çekebilir, anlık olarak job çalıştır butonu ile çalıştırabilir yada cron değerini değiştirebilir.
+
+2 - Veritabanı yedekleri ekranlardan indirilip, tekrar geri yüklenebilir.
+
+Veritabanı Yedekleme Job'ın aldığı yedekler, ekranda zamansal olarak büyükten küçüğe listelenir.
+Her yedeği alınmış kaydın yanında indir ve geri yükle butonları vardır.
+İndir butonu ile tar.gz formatında sıkıştırılıp, indirilebilir.
+Geriyükle butonu ile yedeği alınmış kayıt sisteme tekrar geri yüklenir.
+
+Geri yükleme işlemi öncesi veri kaybetmemek için güncel yedeğin alınmasına dikkat edilmelidir.
+
+Geri yükleme işlemi mevcut olan veritabanın "drop" edilmesi, yenisinin import edilmesi şeklinde çalışmaktadır.
+
+3 - Farklı bir ortamdan yedeği alınmış mirket veritabanı Veritabanı Geriyükleme özelliği ile geri yüklenebilir.
+
+.Yedekleme Ayarları
+image::backup-settings.png[Yedekleme Ayarları]

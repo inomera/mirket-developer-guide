@@ -1,0 +1,18 @@
+= Kısıtlama Ayarları
+
+Mirket sistem genelinde bakım gibi trafiğin zamansal olarak kısıtlma için eklenmiş özelliktir. (4.9.X versiyonu ile eklenmiştir)
+
+Zamansal olarak başlangıç ve bitiş zamanları arasında sistemden geçen api trafiğini engeller.
+Varsayılan olarak aşağıdaki hata kodunu istemciler alacaktır.
+
+[source,js]
+----
+{
+    "error": "GW-ERR-055",
+    "message": "ERR_TIME_RESTRICTION"
+}
+----
+
+
+.Sistem Geneli Kısıtlama Ayarları
+image::system_time_restrictions.png[Sistem Geneli Kısıtlama Ayarları]
