@@ -92,13 +92,14 @@ image::mirket-architecture.png[Mirket Yazılım Mimarisi]
 * Public API Portal
 * AI desteği (katalog, custom code generation)
 
-** 4.X.X Planlanan Özellikler (Minor)
+** 4.10.X Planlanan Özellikler (Minor)
 
 * JWT Yetkinliği (Beta sürüm)
 * Hassas verinin maskelenmesi
 * Gateway hatalarından alarm oluşturma özelliği
 * Mantıksal API Grup özelliği
 * API bazlı healtcheck
+* Asteriks(*) bazlı basit yönlendirme özelliği
 
 ** Mevcut Özellikler (Güncel Stabil Sürüm : 4.9.2)
 
